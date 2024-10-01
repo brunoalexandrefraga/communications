@@ -1,0 +1,86 @@
+% Parâmetros
+Pt = 1*10^3; % Potência de transmissão (W)
+f = 1800*10^6; % Frequência em MHz
+c = 3e8;
+lambda = c/f;
+Gt = 1; % Ganho da antena transmissora
+Gr = 1; % Ganho da antena receptora
+L = 1; % Perda no sistema (nenhuma)
+d0 = 1e3;
+
+% Distâncias de 1 km a 20 km
+d = linspace(1e3, 20e3, 100);
+
+% Cálculo da potência recebida no modelo de espaço livre
+Pr_d0 = Pt * Gt * Gr * (lambda / (4 * pi * d0))^2 / L;
+Pr_free = Pt * Gt * Gr * (lambda ./ (4 * pi * d)).^2 / L;
+
+
+% Modelo de perda de percurso log-distância
+n1 = 3; % Expoente de perda n = 3
+n2 = 4; % Expoente de perda n = 4
+
+Pr_log_distance_n1_free = Pr_d0 * (d0 ./ d).^n1; % n = 3, espaço livre
+Pr_log_distance_n2_free = Pr_d0 * (d0 ./ d).^n2; % n = 4, espaço livre
+
+
+
+
+% Modelo de Hata (estendido) - Ambiente urbano
+% Fórmula de Okumura-Hata:
+% L_hata = 69.55 + 26.16*log10(freq) - 13.82*log10(ht) - a(hr) + (44.9 - 6.55*log10(ht))*log10(d_km)
+
+a_hr = (1.1*log10(freq/1e6) - 0.7)*hr - (1.56*log10(freq/1e6) - 0.8); % Fator de correção para hr (em m)
+L_hata = 69.55 + 26.16*log10(freq/1e6) - 13.82*log10(ht) - a_hr + (44.9 - 6.55*log10(ht))*log10(d/1e3); % Atenuação
+
+Pr_hata = Pt ./ (10.^(L_hata / 10)); % Potência recebida com Hata estendido
+
+% Pr(d0) usando o modelo de Hata
+L_hata_d0 = 69.55 + 26.16*log10(freq/1e6) - 13.82*log10(ht) - a_hr + (44.9 - 6.55*log10(ht))*log10(d0/1e3);
+Pr_d0_hata = Pt / (10^(L_hata_d0 / 10)); % Potência recebida a 1 km no modelo Hata
+
+% Log-distância usando Hata para Pr(d0)
+Pr_log_distance_n1_hata = Pr_d0_hata * (d0 ./ d).^n1; % n = 3, Hata
+Pr_log_distance_n2_hata = Pr_d0_hata * (d0 ./ d).^n2; % n = 4, Hata
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% Gráfico em escala log-log
+figure;
+%loglog(d / 1e3, Pr_free_space_dBm, 'r', 'LineWidth', 2); hold on;
+loglog(d, Pr_free);
+grid on;
+
+% Configurações do gráfico
+xlabel('Distância (km)');
+ylabel('Potência Recebida (dBm)');
+title('Potência Recebida vs. Distância');
+
