@@ -1,5 +1,5 @@
-m = 1;
-r = 3;
+m = 9;
+r = 6;
 n = 4;
 
 
@@ -26,7 +26,7 @@ for i = 1:Lplus1
     PFNm(i,:) = gammainc(m*(2^(Lplus1*r) - 1) ./ gamma_bar_i, m);
 
     % Outage com Rayleigh
-    PFR(i,:) = (2^(Lplus1*r) - 1) ./ gamma_bar_i;
+    PFR(i,:) = 1-exp(-(2^(Lplus1*r) - 1) ./ gamma_bar_i);
 end
 
 P_F_Nm = 1 - prod(1 - PFNm, 1);
