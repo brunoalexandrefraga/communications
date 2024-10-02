@@ -1,9 +1,9 @@
 m = 1;
-r = 1;
+r = 3;
 n = 4;
 
 
-di_d0 = [1/2,1/2];
+di_d0 = [1/2,1/2]; % Relaçoes de distância
 
 % Verifica se a soma é diferente de 1
 if sum(di_d0) ~= 1
@@ -20,13 +20,13 @@ PFR = zeros(Lplus1, length(gamma_bar));
 
 
 for i = 1:Lplus1
-    gamma_bar_i = gamma_bar * di_d0(i)^n;
+    gamma_bar_i = gamma_bar * (1/di_d0(i))^n;
     
     % Outage com Nakagami-m
-    PFNm(i,:) = gammainc(m*(2^(Lplus1*r) - 1) ./ gamma_bar, m);
+    PFNm(i,:) = gammainc(m*(2^(Lplus1*r) - 1) ./ gamma_bar_i, m);
 
     % Outage com Rayleigh
-    PFR(i,:) = (2^(Lplus1*r) - 1) ./ gamma_bar;
+    PFR(i,:) = (2^(Lplus1*r) - 1) ./ gamma_bar_i;
 end
 
 P_F_Nm = 1 - prod(1 - PFNm, 1);
