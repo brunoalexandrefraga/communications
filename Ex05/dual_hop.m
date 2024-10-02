@@ -1,9 +1,9 @@
 m = 1;
 r = 1;
-n = 1;
+n = 4;
 
 
-di_d0 = [1/3,1/3,1/3];
+di_d0 = [1/2,1/2];
 
 % Verifica se a soma é diferente de 1
 if sum(di_d0) ~= 1
@@ -26,15 +26,15 @@ for i = 1:Lplus1
     PFNm(i,:) = gammainc(m*(2^(Lplus1*r) - 1) ./ gamma_bar, m);
 
     % Outage com Rayleigh
-    PFR(i,:) = (2^r - 1) ./ gamma_bar;
+    PFR(i,:) = (2^(Lplus1*r) - 1) ./ gamma_bar;
 end
 
-P_F_Nm = 1 - prod(1 - PFNm);
-P_F_R = 1 - prod(1 - PFR);
+P_F_Nm = 1 - prod(1 - PFNm, 1);
+P_F_R = 1 - prod(1 - PFR, 1);
 
 figure;
-loglog(gamma_bar, P_F_Nm);hold on;
-loglog(gamma_bar, P_F_R);
+loglog(gamma_bar, P_F_Nm(1,:));hold on;
+loglog(gamma_bar, P_F_R(1,:));
 
 grid on;
 
