@@ -1,4 +1,4 @@
-m = 9;
+m = 1;
 r = 6;
 n = 4;
 
@@ -12,7 +12,7 @@ end
 
 Lplus1 = length(di_d0);
 
-gamma_bar = linspace(1, 100000, 1000000);
+gamma_bar = linspace(1, 10000, 1000000);
 
 
 PFNm = zeros(Lplus1, length(gamma_bar));
