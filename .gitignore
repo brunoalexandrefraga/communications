@@ -1,0 +1,10 @@
+venv/
+
+# Arquivos de swap do Vim
+*.swp
+*.swo
+*.swn
+
+# Arquivos de backup do Vim
+*~
+.#*
