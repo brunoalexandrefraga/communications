@@ -32,26 +32,49 @@ n = randn(1, bits) * sqrt(N0/2); % Ruído base com variancia N0/2. Geramos só a p
 %se fosse uma modulação com símbolos complexos, teríamos que gerar também uma parte imaginária do ruído, com variância N0/2
 
 
-EbN0dB = 0; % Valor de Eb/N0 em dB a ser considerado. Pode ser feito um loop para várias Eb/N0
+EbN0dB = 0:1:20; % Faixa de valores de Eb/N0 em dB
 
-EbN0 = 10^(EbN0dB/10); % Valor de Eb/N0 em linear
 
-Eb = EbN0*N0; % Cálculo de Eb
 
-Es = Eb*log2(M); %Cálculo de Es, a Energia de Símbolo
+ber_simulada = zeros(1, length(EbN0dB));
+ber_teorica = zeros(1, length(EbN0dB));
 
-y = sqrt(Es)*x+n; %Saída amostrada do filtro casado no receptor, onde o sinal sqrt(Es)*x tem a energia média Es já que a energia inicial de x era 1.
+for i = 1:length(EbN0dB)
+    EbN0 = 10^(EbN0dB(i)/10); % Valor de Eb/N0 em linear
+    
+    Eb = EbN0*N0; % Cálculo de Eb
+    
+    Es = Eb*log2(M); %Cálculo de Es, a Energia de Símbolo
+    
+    y = sqrt(Es)*x+n; %Saída amostrada do filtro casado no receptor, onde o sinal sqrt(Es)*x tem a energia média Es já que a energia inicial de x era 1.
+    
+    b_est = y>0; %Decisor no receptor, modulação BPSK. Se a saída do filtro casado for >1 decide por bit 1, caso contrário, decide por bit 0.
+    
+    erros = sum(b~=b_est); %Contagem de erros de bit
+    
+    %Cálculo da BER simulada
+    ber_simulada(i) = erros/bits;
+    
+    %Cálculo da BER teórica
+    ber_teorica(i) = 0.5*erfc(sqrt(EbN0));
+    %Pb=qfunc(sqrt(2*EbN0));
 
-b_est = y>0; %Decisor no receptor, modulação BPSK. Se a saída do filtro casado for >1 decide por bit 1, caso contrário, decide por bit 0.
 
-erros = sum(b~=b_est); %Contagem de erros de bit
+    fprintf('%d\t\t%g\t\t%g\n', EbN0dB(i), ber_simulada(i), ber_teorica(i));
+end
 
-ber = erros/bits; %Cálculo da BER simulada
+%fprintf('Simulado: %g | Teórico: %g\n', ber, Pb) %Impressão do resultado na tela
 
-Pb = 0.5*erfc(sqrt(EbN0));%Cálculo da BER teórica
-%Pb=qfunc(sqrt(2*EbN0)); %Cálculo da BER teórica
 
-fprintf('Simulado: %g | Teórico: %g\n', ber, Pb) %Impressão do resultado na tela
+% Plotando os resultados
+semilogy(EbN0dB, ber_simulada, 'b-o', 'LineWidth', 2);
+hold on;
+semilogy(EbN0dB, ber_teorica, 'r-s', 'LineWidth', 2);
+grid on;
+xlabel('E_b/N_0 (dB)');
+ylabel('BER');
+legend('Simulação', 'Teórica');
+title('BER para BPSK no Canal Rayleigh');
 
 % Agora transforme este exemplo em um script que calcula a BER simulada e a
 %BER teórica para diferentes valores de Eb/N0 e gere um gráfico com o 
