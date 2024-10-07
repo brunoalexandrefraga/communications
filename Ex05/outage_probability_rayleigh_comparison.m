@@ -1,3 +1,7 @@
+close all;
+clear all;
+
+
 gamma_bar = linspace(1, 100, 1000);
 
 % Outage com Rayleigh

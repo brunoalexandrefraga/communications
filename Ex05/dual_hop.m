@@ -1,3 +1,7 @@
+close all;
+clear all;
+
+
 m = 1;
 r = 6;
 n = 4;
