@@ -2,12 +2,12 @@ close all;
 clear all;
 
 
-m = 1;
-r = 6;
-n = 4;
+m = 2;
+r = 3;
+n = 3;
 
 
-di_d0 = [1/2,1/2]; % Relaçoes de distância
+di_d0 = [1/5,2/5,2/5]; % Relaçoes de distância
 
 % Verifica se a soma é diferente de 1
 if sum(di_d0) ~= 1
@@ -16,7 +16,7 @@ end
 
 Lplus1 = length(di_d0);
 
-gamma_bar = linspace(1, 10000, 1000000);
+gamma_bar = linspace(1, 100000, 1000000);
 
 
 PFNm = zeros(Lplus1, length(gamma_bar));
@@ -25,7 +25,7 @@ PFR = zeros(Lplus1, length(gamma_bar));
 
 for i = 1:Lplus1
     gamma_bar_i = gamma_bar * (1/di_d0(i))^n;
-    
+
     % Outage com Nakagami-m
     PFNm(i,:) = gammainc(m*(2^(Lplus1*r) - 1) ./ gamma_bar_i, m);
 
@@ -45,4 +45,4 @@ grid on;
 xlabel('Razão sinal ruído média');
 ylabel('Probabilidade de outage');
 title('Probabilidade de outage vs. SNR médio');
-legend('Nakagami-m', 'Rayleigh');
+legend('Nakagami-m, m=3, r=6 e n=4', 'Rayleigh, m=3, r=6 e n=4');
