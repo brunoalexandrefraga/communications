@@ -1,6 +1,6 @@
 ---
-title: Prática de Adaptação de Impedância 
-subtitle: Laboratório 06
+title: Diversidade na Recepção 
+subtitle: Atividade 09
 author:
   - name: Bruno Alexandre Fraga
     email: bruno.fraga@posgrad.ufsc.br
@@ -40,3 +40,73 @@ format:
       # model: 3p # Don't set a model with preprint
       cite-style: number
 ---
+
+# Tarefa 1
+
+A probabilidade de *outage*, $P_o$, para o canal Rayleigh, no caso de MRC (soma ponderada de todos os ramos) com um receptor de $M$ antenas é dada por
+
+$$
+  P_o = \frac{\Gamma\left[M, \left(2^r-1\right)/\bar{\gamma}\right]}{\Gamma\left(M\right)}
+$$
+
+
+Enquanto que no caso de SC (seleção do ramo com máximo SNR) com um receptor de $M$ antenas é dada por @goldsmith2020wireless.
+
+$$
+  P_o=\left[1-e^{(1-2^r)/\bar{\gamma}}\right]^M
+$$
+
+A [Fig. @fig-efficiency-points] apresenta as curvas solicitadas.
+
+```{python}
+#| label: fig-efficiency-points
+#| fig-cap: A meaningless scatterplot
+#| fig-width: 5
+#| fig-height: 5
+#| fig-align: center
+#| out-width: 50%
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import gammainc, gamma
+
+# Outage SC 
+def outage_rayleigh_sc(gamma_bar, r, M):
+    return (1 - np.exp((1 - 2**r) / gamma_bar))**M
+
+# Outage MRC
+def outage_rayleigh_mrc(gamma_bar, r, M):
+    # Cálculo do argumento da função gama incompleta
+    gamma_th = (2**r - 1) / gamma_bar
+    # Cálculo da probabilidade de outage usando a função gama incompleta
+    return gammainc(M, gamma_th)
+
+# Parâmetros
+r = 1  # taxa de transmissão (R/B)
+gamma_bar = np.linspace(0.1, 1000, 10000)  # SNR médio variando de 0.1 a 20
+
+# Calcular P_o para M = 1 e M = 3
+P_o_M1 = outage_rayleigh_sc(gamma_bar, r, M=1)
+P_o_SC_M2 = outage_rayleigh_sc(gamma_bar, r, M=2)
+P_o_MRC_M2 = outage_rayleigh_mrc(gamma_bar, r, M=2)
+
+# Plotar os resultados
+plt.figure(figsize=(8, 6))
+plt.plot(gamma_bar, P_o_M1, label='M = 1', color='#00F')
+plt.plot(gamma_bar, P_o_SC_M2, label='SC, M = 2', color='#F00', linestyle='--')
+plt.plot(gamma_bar, P_o_MRC_M2, label='MRC, M = 2', color='#228B22', linestyle='--')
+
+# Configurações do gráfico
+plt.margins(0)
+plt.yscale('log')
+plt.xscale('log')
+plt.title('Outage com Diversidade RX')
+plt.xlabel(r'$\bar{\gamma}$ (dB)')
+plt.ylabel('Probabilidade de outage')
+plt.grid(True, which='both', ls='--', linewidth=0.5)
+plt.legend()
+plt.ylim(1e-3, 1)
+
+# Exibir o gráfico
+plt.show()
+```
