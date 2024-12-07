@@ -13,11 +13,9 @@ author:
           state: Santa Catarina
           postal-code: 88040-370
 abstract: |
-  Este trabalho tem por objetivo consolidar a técnica de projeto de redes de casamento de impedância, em especial a técnica pela rede L. Para isso, é proposto realizar o casamento de impedância da saída de um amplificador para uma carga de 50 $\Omega$ de modo que a eficiência da potência dissipada na carga seja de 80%. Após algumas análises o projeto foi concluído com sucesso e realizada uma simulação Monte Carlo com 100 iterações para verificar a robustez do projeto por técnicas estatísticas. Os resultados obtidos foram brevemente discutidos.
+  Resumo da atividade.
 keywords: 
-  - Robustez
-  - Adaptação de impedância
-  - Análise estatística
+  - Diversidade
 date: last-modified
 bibliography: bibliography.bib
 format:
@@ -35,7 +33,7 @@ format:
           \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
     keep-tex: true
     journal:
-      name: RF Circuits
+      name: Wireless Communications 
       formatting: preprint
       # model: 3p # Don't set a model with preprint
       cite-style: number
