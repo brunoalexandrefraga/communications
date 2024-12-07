@@ -1,124 +1,202 @@
 ---
-title: Short Paper
-subtitle: A Short Subtitle
+title: Propagação em Larga Escala - Parte 2
+subtitle: Laboratório 07
 author:
-  - name: Alice Anonymous
-    email: alice@example.com
+  - name: Bruno Alexandre Fraga
+    email: bruno.fraga@posgrad.ufsc.br
     affiliations: 
         - id: some-tech
-          name: Some Institute of Technology
-          department: Department Name
-          address: Street Address
-          city: City
-          state: State
-          postal-code: Postal Code
-    attributes:
-        corresponding: true
-    note: This is the first author footnote.
-  - name: Bob Security
-    email: bob@example.com
-    affiliations:
-        - id: another-u
-          name: Another University
-          department: Department Name
-          address: Street Address
-          city: City
-          state: State
-          postal-code: Postal Code
-    note: |
-      Another author footnote, this is a very long footnote and it should be a really long footnote. But this footnote is not yet sufficiently long enough to make two lines of footnote text.
-  - name: Cat Memes
-    email: cat@example.com
-    affiliations:
-        - ref: another-u
-    note: Yet another author footnote.
-  - name: Derek Zoolander
-    email: derek@example.com
-    affilations:
-        - ref: some-tech
+          name: Universidade Federal de Santa Catarina
+          department: Departamento de Engenharia Elétrica e Eletrônica
+          address: R. Delfino Conti
+          city: Florianópolis
+          state: Santa Catarina
+          postal-code: 88040-370
 abstract: |
-  This is the abstract. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum augue turpis, dictum non malesuada a, volutpat eget velit. Nam placerat turpis purus, eu tristique ex tincidunt et. Mauris sed augue eget turpis ultrices tincidunt. Sed et mi in leo porta egestas. Aliquam non laoreet velit. Nunc quis ex vitae eros aliquet auctor nec ac libero. Duis laoreet sapien eu mi luctus, in bibendum leo molestie. Sed hendrerit diam diam, ac dapibus nisl volutpat vitae. Aliquam bibendum varius libero, eu efficitur justo rutrum at. Sed at tempus elit.
+  Este trabalho tem por objetivo consolidar a técnica de projeto de redes de casamento de impedância, em especial a técnica pela rede L. Para isso, é proposto realizar o casamento de impedância da saída de um amplificador para uma carga de 50 $\Omega$ de modo que a eficiência da potência dissipada na carga seja de 80%. Após algumas análises o projeto foi concluído com sucesso e realizada uma simulação Monte Carlo com 100 iterações para verificar a robustez do projeto por técnicas estatísticas. Os resultados obtidos foram brevemente discutidos.
 keywords: 
-  - keyword1
-  - keyword2
+  - Robustez
+  - Adaptação de impedância
+  - Análise estatística
 date: last-modified
 bibliography: bibliography.bib
 format:
   elsevier-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{steinmetz}
+          \usepackage[a4paper, margin=1in]{geometry}
+          \usepackage{graphicx} % Required for inserting images
+          \usepackage{circuitikz}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{amsthm}
+          \usepackage{comment}
+
+          \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
     keep-tex: true
     journal:
-      name: Journal Name
+      name: RF Circuits
       formatting: preprint
       # model: 3p # Don't set a model with preprint
-      cite-style: authoryear
+      cite-style: number
 ---
 
-Please make sure that your manuscript follows the guidelines in the 
-Guide for Authors of the relevant journal. It is not necessary to 
-typeset your manuscript in exactly the same way as an article, 
-unless you are submitting to a camera-ready copy (CRC) journal.
+# Tarefa 1
 
-For detailed instructions regarding the elsevier article class, see   <https://www.elsevier.com/authors/policies-and-guidelines/latex-instructions>
+## Introdução
 
-# Bibliography styles
 
-Here are two sample references:  @Feynman1963118 @Dirac1953888.
 
-With this template using elsevier class, natbib will be used. Three bibliographic style ﬁles (*.bst) are provided and their use controled by `cite-style` option: 
+## Resolução
 
-- `citestyle: number` (default)  will use `elsarticle-num.bst` - can be used for the numbered scheme
-- `citestyle: numbername` will use `elsarticle-num-names.bst` - can be used for numbered with new options of natbib.sty
-- `citestyle: authoryear` will use `elsarticle-harv.bst` — can be used for author year scheme
+```{python}
+#| echo: false
+import scipy
+import numpy as np
 
-This `citestyle` will insert the right `.bst` and set the correct `classoption` for `elsarticle` document class.
+# Parâmetros
+freq_T1 = 1.8e9  # Hz
+Pt_T1 = 2e-3  # W
+d0_T1 = 1  # m
+Gt_T1 = 1  # adimensional
+Gr_T1 = 1  # adimensional
 
-Using `natbiboptions` variable in YAML header, you can set more options for `natbib` itself . Example 
+# Comprimento de onda
+_lambda_T1 = scipy.constants.c / freq_T1
 
-```yaml
-natbiboptions: longnamesfirst,angle,semicolon
+# Potência recebida
+Pr_d0_T1 = (Pt_T1 * Gt_T1 * Gr_T1) * (_lambda_T1 / (4 * scipy.constants.pi * d0_T1))**2
+
+# Conversão para dBm
+Pr_d0_T1_dBm = 10 * np.log10(Pr_d0_T1 / 1e-3)
+
+d_T1 = 200
+
 ```
 
-## Using CSL 
+```{python}
+#| echo: false
+def format(value):
+    if value >= 1e9:
+        return f"{value / 1e9:.2f} G"
+    elif value >= 1e6:
+        return f"{value / 1e6:.2f} M"
+    elif value >= 1e3:
+        return f"{value / 1e3:.2f} k"
+    elif value >= 1:
+        return f"{value:.2f} "
+    elif value >= 1e-3:
+        return f"{value * 1e3:.2f} m"
+    elif value >= 1e-6:
+        return f"{value * 1e6:.2f} μ"
+    elif value >= 1e-9:
+        return f"{value * 1e9:.2f} n"
+    elif value >= 1e-12:
+        return f"{value * 1e12:.2f} p"
+    elif value >= 1e-15:
+        return f"{value * 1e12:.2f} p"
+    else:
+        return f"{value:.0e} "
+```
 
-If `cite-method` is set to `citeproc` in `elsevier_article()`, then pandoc is used for citations instead of `natbib`. In this case, the `csl` option is used to format the references. By default, this template will provide an appropriate style, but alternative `csl` files are available from <https://www.zotero.org/styles?q=elsevier>. These can be downloaded
-and stored locally, or the url can be used as in the example header.
+```{python}
+#| echo: false
+def format_simple(value, decimals=2):
+    format_string = f"{{:.{decimals}f}}"
+    return f"{format_string.format(value)}"
+```
 
-# Equations
+Para a frequência de `{python} format(freq_T1)`Hz, obtém-se $\lambda=$ `{python} format(_lambda_T1)`m. Dada a equação da perda por propagação no espaço livre @goldsmith2020wireless
 
-Here is an equation:
-$$ 
-  f_{X}(x) = \left(\frac{\alpha}{\beta}\right)
-  \left(\frac{x}{\beta}\right)^{\alpha-1}
-  e^{-\left(\frac{x}{\beta}\right)^{\alpha}}; 
-  \alpha,\beta,x > 0 .
+$$
+  \frac{P_r}{P_t}=G_tG_r\left[\frac{\lambda}{4\pi d}\right]^2
 $$
 
-Inline equations work as well: $\sum_{i = 2}^\infty\{\alpha_i^\beta\}$
+Supondo a distância de referência, $d_0=$ `{python} format(d0_T1)`m, e ganhos para as antenas de transmissão, $G_t=$ `{python} Gt_T1`, e recepção, $G_r=$ `{python} Gr_T1`, obtém-se $P_r=$ `{python} format_simple(Pr_d0_T1_dBm)` dBm. Com esse valor, é possível calcular o modelo de perda de propagação do tipo log-distância para calcular $P(d)$, com $d=$ `{python} format_simple(d_T1)` m, utilizando a equação
 
-# Figures and tables
+$$
+  P_r(d)=P_r(d_0)-10n\log\left(\frac{d}{d_0}\right)
+$$
 
-@fig-meaningless is generated using an R chunk.
+Em que $n$ é o valor que minimiza a equação quadrática de diferença entre as potências medida, $P_{r_m}$, e calculada, $P_{r}$.
 
-```{r}
-#| label: fig-meaningless
-#| fig-cap: A meaningless scatterplot
-#| fig-width: 5
-#| fig-height: 5
-#| fig-align: center
-#| out-width: 50%
+$$
+  F(n)=\sum_{i=1}^{n}\bigg[P_{r_m}\left(d_i\right)-P_{r}\left(d_i\right)\bigg]^2
+$$
+
+Para realizar essa minimização, utiliza-se a tabela fornecida pelo problema
+
+```{python}
 #| echo: false
-plot(runif(25), runif(25))
+#| label: tbl-distance-power
+#| tbl-cap: "Potência medida em diferentes distâncias"
+#| output: asis
+
+# Dados da tabela
+dados = [
+    {"i": 1, "Distância (m)": 10, "Medição (dBm)": -65},
+    {"i": 2, "Distância (m)": 20, "Medição (dBm)": -72},
+    {"i": 3, "Distância (m)": 50, "Medição (dBm)": -87},
+    {"i": 4, "Distância (m)": 100, "Medição (dBm)": -105},
+    {"i": 5, "Distância (m)": 300, "Medição (dBm)": -128},
+]
+
+# Cabeçalhos
+cabecalhos = "| i | Distância (m) | Medição (dBm) |\n"
+linha_divisoria = "|---|---------------|---------------|\n"
+
+# Formatação da tabela
+tabela = cabecalhos + linha_divisoria
+for linha in dados:
+    tabela += f"| {linha['i']} | {linha['Distância (m)']} | {linha['Medição (dBm)']} |\n"
+
+# Exibe a tabela em Markdown
+print(tabela)
 ```
 
-# Tables coming from R
+See @tbl-distance-power.
 
-Tables can also be generated using R chunks, as shown in @tbl-simple example.
-
-```{r}
-#| label: tbl-simple
-#| tbl-cap: Caption centered above table
-#| echo: true
-knitr::kable(head(mtcars)[,1:4])
+```{python}
+#| echo: false
+  Pr_d_T1_dBm = Pr_d0_T1_dBm - 10 * np.log10(d_T1/d0_T1)
 ```
+
+Dessa forma, a 
+
+que 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # References {-}
