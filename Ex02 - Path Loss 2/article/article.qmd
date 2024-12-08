@@ -125,7 +125,7 @@ $$
   F(n)=\sum_{i=1}^{n}\bigg[P_{r_m}\left(d_i\right)-P_{r}\left(d_i\right)\bigg]^2
 $$
 
-Para realizar essa minimização, utiliza-se a tabela fornecida pelo problema
+Para realizar essa minimização, utilizam-se os valores apresentados pela tabela fornecida pelo problema
 
 ```{python}
 #| echo: false
@@ -133,33 +133,66 @@ Para realizar essa minimização, utiliza-se a tabela fornecida pelo problema
 #| tbl-cap: "Potência medida em diferentes distâncias"
 #| output: asis
 
-# Dados da tabela
-dados = [
-    {"i": 1, "Distância (m)": 10, "Medição (dBm)": -65},
-    {"i": 2, "Distância (m)": 20, "Medição (dBm)": -72},
-    {"i": 3, "Distância (m)": 50, "Medição (dBm)": -87},
-    {"i": 4, "Distância (m)": 100, "Medição (dBm)": -105},
-    {"i": 5, "Distância (m)": 300, "Medição (dBm)": -128},
-]
+# Vetores de dados
+dist_T1 = [10, 20, 50, 100, 300]
+Pmeas_T1 = [-65, -72, -87, -105, -128]
 
 # Cabeçalhos
-cabecalhos = "| i | Distância (m) | Medição (dBm) |\n"
-linha_divisoria = "|---|---------------|---------------|\n"
+header = "| i | Distância (m) | Pmedido (dBm) |\n"
+div = "|---|---------------|---------------|\n"
 
 # Formatação da tabela
-tabela = cabecalhos + linha_divisoria
-for linha in dados:
-    tabela += f"| {linha['i']} | {linha['Distância (m)']} | {linha['Medição (dBm)']} |\n"
+table = header + div
+for i, (d, p) in enumerate(zip(dist_T1, Pmeas_T1), start=1):
+    table += f"| {i} | {d}            | {p}           |\n"
 
 # Exibe a tabela em Markdown
-print(tabela)
+print(table)
 ```
 
-See @tbl-distance-power.
+
 
 ```{python}
 #| echo: false
-  Pr_d_T1_dBm = Pr_d0_T1_dBm - 10 * np.log10(d_T1/d0_T1)
+#| output: asis
+
+from sympy import symbols, simplify, log, latex, N
+import numpy as np
+
+# Dados
+Pr_d0_T1_dBm = -34
+d_T1 = 200
+d0_T1 = 200
+dist_T1 = [10, 20, 50, 100, 300]
+Pmeas_T1 = [-65, -72, -87, -105, -128]
+
+# Definir variáveis simbólicas
+n = symbols('n')
+
+# Funções
+def Pr_d_T1_dBm_calc(d_i):
+    return Pr_d0_T1_dBm - 10 * n * log(d_i / d0_T1, 10)
+
+def Fn_partial_calc(Pr_meas_i, d_i):
+    return Pr_meas_i - Pr_d_T1_dBm_calc(d_i)
+
+# Calcular Fn
+Fn = 0  # Inicializar Fn
+for d_i, Pr_meas_i in zip(dist_T1, Pmeas_T1):
+    Fn += Fn_partial_calc(Pr_meas_i, d_i)**2
+
+# Simplificar e arredondar
+Fn_simplified = simplify(Fn)
+Fn_printed = N(Fn, 2)
+Fn_rounded = N(Fn_simplified, 2)
+
+# Converter para LaTeX
+Fn_latex_original = latex(Fn_printed)
+Fn_latex = latex(Fn_rounded)
+
+# Exibir no formato esperado
+print(f"$$\n{Fn_latex_original}\n$$")
+print(f"$$\n{Fn_latex}\n$$")
 ```
 
 Dessa forma, a 
