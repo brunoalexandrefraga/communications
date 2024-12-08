@@ -113,17 +113,17 @@ $$
   \frac{P_r}{P_t}=G_tG_r\left[\frac{\lambda}{4\pi d}\right]^2
 $$
 
-Supondo a distância de referência, $d_0=$ `{python} format(d0_T1)`m, e ganhos para as antenas de transmissão, $G_t=$ `{python} Gt_T1`, e recepção, $G_r=$ `{python} Gr_T1`, obtém-se $P_r=$ `{python} format_simple(Pr_d0_T1_dBm)` dBm. Com esse valor, é possível calcular o modelo de perda de propagação do tipo log-distância para calcular $P(d)$, com $d=$ `{python} format_simple(d_T1)` m, utilizando a equação
+Supondo a distância de referência, $d_0=$ `{python} format(d0_T1)`m, e ganhos para as antenas de transmissão, $G_t=$ `{python} Gt_T1`, e recepção, $G_r=$ `{python} Gr_T1`, obtém-se $P_r=$ `{python} format_simple(Pr_d0_T1_dBm)` dBm. Dessa forma, utiliza-se a seguinte equação para calcular o valor da potência recebida pelo modelo de log-distância.
 
 $$
   P_r(d)=P_r(d_0)-10n\log\left(\frac{d}{d_0}\right)
-$$
+$$ {#eq-Pr-meas-def}
 
 Em que $n$ é o valor que minimiza a equação quadrática de diferença entre as potências medida, $P_{r_m}$, e calculada, $P_{r}$.
 
 $$
   F(n)=\sum_{i=1}^{n}\bigg[P_{r_m}\left(d_i\right)-P_{r}\left(d_i\right)\bigg]^2
-$$
+$$ {#eq-Fn-def}
 
 Para realizar essa minimização, utilizam-se os valores apresentados pela tabela fornecida pelo problema
 
@@ -150,7 +150,7 @@ for i, (d, p) in enumerate(zip(dist_T1, Pmeas_T1), start=1):
 print(table)
 ```
 
-
+Utilizando esses valores na [Eq. @eq-Fn-def], e utilizando a [Eq. @eq-Pr-meas-def] para calcular a potência recebida calculada, obtém-se
 
 ```{python}
 #| echo: false
@@ -159,19 +159,15 @@ print(table)
 from sympy import symbols, simplify, log, latex, N
 import numpy as np
 
-# Dados
-Pr_d0_T1_dBm = -34
-d_T1 = 200
-d0_T1 = 200
-dist_T1 = [10, 20, 50, 100, 300]
-Pmeas_T1 = [-65, -72, -87, -105, -128]
-
 # Definir variáveis simbólicas
-n = symbols('n')
+n_symb = symbols('n')
 
 # Funções
-def Pr_d_T1_dBm_calc(d_i):
-    return Pr_d0_T1_dBm - 10 * n * log(d_i / d0_T1, 10)
+def Pr_d_T1_dBm_calc(d_i, n_var = n_symb):
+    return Pr_d0_T1_dBm - 10 * n_var * log(d_i / d0_T1, 10)
+
+def Pr_d_T1_dBm_numc(d_i, n_var):
+    return Pr_d0_T1_dBm - 10 * float(n_var) * log(d_i / d0_T1, 10)
 
 def Fn_partial_calc(Pr_meas_i, d_i):
     return Pr_meas_i - Pr_d_T1_dBm_calc(d_i)
@@ -187,29 +183,129 @@ Fn_printed = N(Fn, 2)
 Fn_rounded = N(Fn_simplified, 2)
 
 # Converter para LaTeX
-Fn_latex_original = latex(Fn_printed)
 Fn_latex = latex(Fn_rounded)
+Fn_latex_original = r"\;" + latex(Fn_printed).replace('+', '+ \\\\\n&')
+
 
 # Exibir no formato esperado
-print(f"$$\n{Fn_latex_original}\n$$")
-print(f"$$\n{Fn_latex}\n$$")
+print(f"$$\n\\begin{{split}}\nF_n =& {Fn_latex_original} \\implies\n\\end{{split}}\n$$")
+
+print(f"$$\nF_n={Fn_latex}\n$$ {{#eq-Fn-simplified}}")
 ```
 
-Dessa forma, a 
+Calculando-se a derivada de $F_n$, resulta em 
 
-que 
+```{python}
+#| echo: false
+#| output: asis
+from sympy import symbols, simplify, log, diff, solve
+
+# Derivada de Fn em relação a n
+Fn_derivative = diff(Fn_simplified, n_symb)
+
+Fn_derivative_rounded = N(Fn_derivative, 2)
+
+Fn_derivative_simplified = simplify(Fn_derivative_rounded)
+
+Fn_latex_derivative = latex(Fn_derivative_simplified)
+
+print(f"$$\n\\frac{{dF_n}}{{dn}}={Fn_latex_derivative}\n$$ {{#eq-Fn-derivative}}")
+```
+
+Dessa forma, obtém-se um valor ótimo para $n$ a partir da minimização da [Eq. @eq-Fn-simplified], ou seja, busca-se um $n$ tal que
+
+$$
+  \frac{dF_n}{dn} = 0
+$$
+
+```{python}
+#| echo: false
+from sympy import symbols, simplify, log, diff, solve
+
+# Resolver Fn' = 0 para encontrar o valor mínimo de n
+n_min = solve(Fn_derivative, n_symb)
+```
+
+Resolvendo a [Eq. @eq-Fn-derivative] igual a 0, chega-se a um $n=$ `{python} format_simple(n_min[0])`.
+
+```{python}
+#| echo: false
+from sympy import symbols, simplify, log, diff, solve
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import LogLocator
+
+# Gerar valores para n e calcular Fn para o plot
+n_vals = np.linspace(0, 7, 800)
+Fn_vals = [Fn_simplified.subs(n_symb, val) for val in n_vals]
+
+# Determinar o valor mínimo
+n_min_val = n_min[0]  # Usar o primeiro valor real
+Fn_min_val = Fn_simplified.subs(n_symb, n_min_val)
+
+# Plotar a curva
+plt.figure(figsize=(10, 6))
+plt.plot(n_vals, Fn_vals, label=r"$F_n$", color='blue')
+plt.axhline(y=Fn_min_val, color='red', linestyle='--', label="Mínimo de $F_n$")
+plt.axvline(x=n_min_val, color='green', linestyle='--', label=f"$n_{{mín}}$ = {n_min_val:.2f}")
+
+# Configurar o gráfico
+plt.yscale('log')  # Configurar o eixo y como logarítmico
+
+# Adicionar marcações no eixo logarítmico
+plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=None, numticks=10))  # Marcas principais
+plt.gca().yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10) * 0.1, numticks=10))  # Marcas menores
+
+plt.title("Curva de $F_n$ e ponto mínimo")
+plt.xlabel("$n$")
+plt.ylabel("$F_n$")
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+```{python}
+#| echo: false
+Pr_d_T1_dBm = Pr_d_T1_dBm_numc(d_T1, n_min[0])
+Pr_d_T1_dBm_round = N(Pr_d_T1_dBm, 5)
+```
+
+Com todos esses valores, é possível utilizar o modelo de perda de propagação do tipo log-distância para calcular $P_r(d)$, com $d=$ `{python} format_simple(d_T1)` m, esse valor resulta em $P_r(d)=$ `{python} Pr_d_T1_dBm_round` dBm.
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from sympy import symbols, log
+
+dist_T1 = [10, 20, 50, 100, 300]  # Distâncias fornecidas
+Pmeas_T1 = [-65, -72, -87, -105, -128]  # Potências medidas
+
+# Gerar valores de distância de 1 a 1000 com 1000 pontos
+d_T1_vals = np.linspace(1, 1000, 1000)
+
+# Calcular Pr_d_T1_dBm para cada valor de d_T1
+Pr_d_T1_dBm_vals = [Pr_d_T1_dBm_numc(d, n_min[0]).evalf() for d in d_T1_vals]
+
+# Plotar a curva
+plt.figure(figsize=(10, 6))
+plt.plot(d_T1_vals, Pr_d_T1_dBm_vals, label="Calculado", color="blue")
+
+# Adicionar os pontos fornecidos
+plt.scatter(dist_T1, Pmeas_T1, color='red', label="Medido", zorder=5)
+
+# Configurar o gráfico
+plt.title("Curva de Pr(d) para valores de d (1 a 1000)", fontsize=14)
+plt.xlabel("Distância d [m]", fontsize=12)
+plt.ylabel("Pr(d) [dBm]", fontsize=12)
+plt.xscale('log')  # Usar escala log no eixo X
+plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+plt.legend(fontsize=12)
+plt.show()
 
 
 
-
-
-
-
-
-
-
-
-
+```
 
 
 
