@@ -44,11 +44,6 @@ format:
 
 # Tarefa 1
 
-## Introdução
-
-
-
-## Resolução
 
 ```{python}
 #| echo: false
@@ -111,7 +106,7 @@ Para a frequência de `{python} format(freq_T1)`Hz, obtém-se $\lambda=$ `{pytho
 
 $$
   \frac{P_r}{P_t}=G_tG_r\left[\frac{\lambda}{4\pi d}\right]^2
-$$
+$$ {#eq-free-pathloss}
 
 Supondo a distância de referência, $d_0=$ `{python} format(d0_T1)`m, e ganhos para as antenas de transmissão, $G_t=$ `{python} Gt_T1`, e recepção, $G_r=$ `{python} Gr_T1`, obtém-se $P_r=$ `{python} format_simple(Pr_d0_T1_dBm)` dBm. Dessa forma, utiliza-se a seguinte equação para calcular o valor da potência recebida pelo modelo de log-distância.
 
@@ -307,11 +302,82 @@ plt.show()
 
 ```
 
+# Tarefa 2
+
+```{python}
+#| echo: false
+import numpy as np
+import scipy
+
+fc_T2 = 900e6 #Hz
+n_val_T2 = 3
+d0_T2 = 1 #m
+sigmaX_dB = 6 #dB
+sigmaX = 10**(sigmaX_dB/20)
+SNR_min_dB = 5 #dB
+SNR_min = 10**(SNR_min_dB/20)
+Pn_T2_dBm = -45 #dBm
+Pn_T2 = 10**(Pn_T2_dBm/10)*1e-3
+Pt_T2 = 10 #W
+Pt_T2_dBm = 10 * np.log10(Pt_T2 / 1e-3)
+Gt_T2_dB = 5 #dB
+Gt_T2 = 10**(Gt_T2_dB/20)
+Gr_T2_dB = 5 #dB
+Gr_T2 = 10**(Gr_T2_dB/20)
+Tau = 90 #%
+
+Pr_T2_dBm = SNR_min_dB + Pn_T2_dBm
+
+_lambda_T2 = scipy.constants.c / fc_T2
+
+Pr_d0_T2 = (Pt_T2 * Gt_T2 * Gr_T2) * (_lambda_T2 / (4 * scipy.constants.pi * d0_T2))**2
+Pr_d0_T2_dBm = 10 * np.log10(Pr_d0_T2/1e-3)
+
+d_max_T2 = 1
+
+Gr_T2_dB
+```
+
+Nesta tarefa, deseja-se calcular o máximo alcance para um sistema operando na frequência $f_c=$ `{python} format(fc_T2)`Hz, em que a propagação segue um modelo do tipo log-normal com coeficiente de perda de propagação $n =$ `{python} format_simple(n_val_T2)`, distância de referência $d_0 =$ `{python} format_simple(d0_T2)` m e desvio padrão $\sigma_X =$ `{python} format_simple(sigmaX_dB)` dB. Para adequado funcionamento, é necessário que a razão sinal-ruído (SNR) seja maior ou igual a `{python} format_simple(SNR_min_dB)` dB, considerando que a potência de ruído é de `{python} format_simple(Pn_T2_dBm)` dBm. Além disso, assume-se potência de transmissão $P_t =$ `{python} format_simple(Pt_T2)` W $=$ `{python} format_simple(Pt_T2_dBm)` dBm e ganhos das antenas $G_t =$ `{python} format_simple(Gt_T2_dB)` dB e $G_r =$ `{python} format_simple(Gr_T2_dB)` dB. Este máximo alcance deve ser determinado de modo que o desempenho atingido seja de pelo menos $T\geq$ `{python} format_simple(Tau)` % do tempo.
+
+Utilizando a [Eq. @eq-free-pathloss], obtém-se $P_r(d_0)=$ `{python} format_simple(Pr_d0_T2_dBm)` dBm. No limite de $\text{SNR}=$ `{python} format_simple(SNR_min_dB)` dB, calcula-se o $P_r=\text{SNR}+P_n=$ `{python} format_simple(Pr_T2_dBm)` dBm. Além disso, sabendo que
+
+$$
+  P_L=P_t-P_r
+$$
+
+```{python}
+#| echo: false
+PL_d0_dBm = Pt_T2_dBm - Pr_d0_T2_dBm
+```
+
+```{python}
+#| echo: false
+import numpy as np
+from scipy.stats import norm
+
+# Parâmetros
+mean = 0
+T = np.array([0.3, 0.5, 0.7, 0.8, 0.85, 0.9, 0.95])  # Probabilidades
+
+# Função para calcular a variável aleatória associada a uma dada probabilidade, usando a distribuição normal
+def x(probability, mean, std_dev):
+    return norm.ppf(probability, loc=mean, scale=std_dev)
+
+# Exemplo de uso
+mean = 0  # Média da distribuição
+std_dev = 6  # Desvio padrão
 
 
+# Calcular e imprimir o valor de X para a probabilidade de 0.9
+X_val = x(0.9, mean, std_dev)
+```
 
+Obtém-se $P_L(d_0)=$ `{python} format_simple(PL_d0_dBm)` dB. Em seguida, analisa-se a variável que modela variações estatísticas da perda de propagação em relação ao modelo log-distância, a variável $X$. O cálculo de $X$ utiliza a inversa da função de probabilidade acumulada de uma distribuição Gaussiana com média $\mu_X = 0$ e desvio padrão $\sigma_X = 6$ dB. Neste caso, deseja-se garantir o desempenho em pelo menos $T = 90$% do tempo. Isso é feito resolvendo $P(X \leq x) = T$, o que resulta em $x =$ `{python} format_simple(X_val)` dB, obtido pela função `stats.ppf` da biblioteca `scipy` do Python.
 
-
+$$
+P_L(d) = P_L(d_0) + 10n\log(d) + X
+$$
 
 
 
