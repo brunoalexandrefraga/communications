@@ -1,0 +1,217 @@
+---
+title: Propagação em Larga Escala - Parte 2
+subtitle: Laboratório 07
+author:
+  - name: Bruno Alexandre Fraga
+    email: bruno.fraga@posgrad.ufsc.br
+    affiliations: 
+        - id: some-tech
+          name: Universidade Federal de Santa Catarina
+          department: Departamento de Engenharia Elétrica e Eletrônica
+          address: R. Delfino Conti
+          city: Florianópolis
+          state: Santa Catarina
+          postal-code: 88040-370
+abstract: |
+  Este trabalho tem por objetivo consolidar a técnica de projeto de redes de casamento de impedância, em especial a técnica pela rede L. Para isso, é proposto realizar o casamento de impedância da saída de um amplificador para uma carga de 50 $\Omega$ de modo que a eficiência da potência dissipada na carga seja de 80%. Após algumas análises o projeto foi concluído com sucesso e realizada uma simulação Monte Carlo com 100 iterações para verificar a robustez do projeto por técnicas estatísticas. Os resultados obtidos foram brevemente discutidos.
+keywords: 
+  - Robustez
+  - Adaptação de impedância
+  - Análise estatística
+date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{steinmetz}
+          \usepackage[a4paper, margin=1in]{geometry}
+          \usepackage{graphicx} % Required for inserting images
+          \usepackage{circuitikz}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{amsthm}
+          \usepackage{comment}
+
+          \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+    keep-tex: true
+    journal:
+      name: RF Circuits
+      formatting: preprint
+      # model: 3p # Don't set a model with preprint
+      cite-style: number
+---
+
+# Tarefa 1
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy as sp
+from scipy.special import i0, gamma
+
+# Estilo para o gráfico
+plt.style.use('seaborn-v0_8')
+
+# Função de distribuição Rayleigh
+def rayleigh_dist(h):
+    return 2 * np.abs(h) * np.exp(-(np.abs(h) ** 2))
+
+# Função de distribuição Rician
+def rician_dist(h, K):
+    abs_h = np.abs(h)
+    return 2 * abs_h * (K + 1) * i0(2 * abs_h * np.sqrt(K * (K + 1))) * np.exp(-K - ((K + 1) * (abs_h ** 2)))
+
+# Função de distribuição Nakagami-m
+def nakagami_m_dist(h, m):
+    abs_h = np.abs(h)
+    return (2 * (m ** m) * np.power(abs_h, 2 * m - 1) * np.exp(-m * (abs_h ** 2))) / gamma(m)
+
+# Definindo o vetor h
+h = np.linspace(0, 2.25, 50000)
+
+# Calculando a PDF de Rayleigh
+rayleigh_pdf = rayleigh_dist(h)
+
+# Valores de K para a distribuição Rician
+Kvalues = [0, 2, 5, 10]
+
+# Valores de m para a distribuição Nakagami-m
+mvalues = [1, 2, 3, 6]
+
+# Criando a figura e os subplots
+fig, axs = plt.subplots(1, 3, figsize=(26, 10))
+
+# Gráfico de Rayleigh
+axs[0].set_xlabel('|h|', fontsize=16)
+axs[0].set_ylabel('pdf', fontsize=16)
+axs[0].set_title('Rayleigh', fontsize=16)
+axs[0].grid(True, alpha=0.5)
+axs[0].plot(h, rayleigh_pdf)
+
+# Gráfico de Rician
+axs[1].set_xlabel('|h|', fontsize=16)
+axs[1].set_ylabel('pdf', fontsize=16)
+axs[1].set_title('Rician', fontsize=16)
+axs[1].grid(True, alpha=0.5)
+
+for K in Kvalues:
+    rician = rician_dist(h, K)
+    axs[1].plot(h, rician, label=f'K = {K}')
+
+axs[1].legend(fontsize=16)
+
+# Gráfico de Nakagami-m
+axs[2].set_xlabel('|h|', fontsize=16)
+axs[2].set_ylabel('pdf', fontsize=16)
+axs[2].set_title('Nakagami-m', fontsize=16)
+axs[2].grid(True, alpha=0.5)
+
+for m in mvalues:
+    naka = nakagami_m_dist(h, m)
+    axs[2].plot(h, naka, label=f'm = {m}')
+
+axs[2].legend(fontsize=16)
+
+# Exibindo os gráficos
+plt.show()
+
+```
+
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import i0, gamma
+
+# Função de distribuição de potência Rayleigh
+def rayleigh_power_dist(h, Pr):
+    return (1 / Pr) * np.exp(-1 * (np.abs(h) / Pr))
+
+# Função de distribuição de potência Rician
+def rician_power_dist(h, K, Pr):
+    return ((1 + K) * np.exp(-K) / Pr) * np.exp(-(1 + K) * np.abs(h) / Pr) * i0(np.sqrt(4 * K * (1 + K) * np.abs(h) / Pr))
+
+# Função de distribuição de potência Nakagami-m
+def nakagami_m_power_dist(h, m, Pr):
+    return (np.power(m / Pr, m) * np.power(np.abs(h), m - 1) * np.exp(-m * np.abs(h) / Pr)) / gamma(m)
+
+# Definindo o vetor h
+h = np.linspace(0, 5, 50000)
+
+# Assumindo Pr = 1 mW ou 0 dBm
+Pr = 1
+
+# Calculando a distribuição de potência Rayleigh
+rayleigh_power = rayleigh_power_dist(h, Pr)
+
+# Valores de K para a distribuição Rician
+Kvalues = [0, 2, 5, 10]
+
+# Valores de m para a distribuição Nakagami-m
+mvalues = [1, 2, 3, 6]
+
+# Criando a figura e os subplots
+fig, axs = plt.subplots(1, 3, figsize=(30, 10))
+
+# Gráfico de potência Rayleigh
+axs[0].set_xlabel('|h|', fontsize=16)
+axs[0].set_ylabel('PDF density function', fontsize=16)
+axs[0].set_title('Rayleigh', fontsize=16)
+axs[0].grid(True, alpha=0.5)
+axs[0].plot(h, rayleigh_power)
+
+# Gráfico de potência Rician
+axs[1].set_xlabel('|h|', fontsize=16)
+axs[1].set_ylabel('PDF', fontsize=16)
+axs[1].set_title('Rician', fontsize=16)
+axs[1].grid(True, alpha=0.5)
+
+for K in Kvalues:
+    rician = rician_power_dist(h, K, Pr)
+    axs[1].plot(h, rician, label=f'K = {K}')
+
+axs[1].legend(fontsize=16)
+
+# Gráfico de potência Nakagami-m
+axs[2].set_xlabel('|h|', fontsize=16)
+axs[2].set_ylabel('PDF', fontsize=16)
+axs[2].set_title('Nakagami-m', fontsize=16)
+axs[2].grid(True, alpha=0.5)
+
+for m in mvalues:
+    naka = nakagami_m_power_dist(h, m, Pr)
+    axs[2].plot(h, naka, label=f'm = {m}')
+
+axs[2].legend(fontsize=16)
+
+# Exibindo os gráficos
+plt.show()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# References {-}
