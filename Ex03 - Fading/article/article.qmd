@@ -48,8 +48,6 @@ format:
 #| echo: false
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as sp
-from scipy.special import i0, gamma
 
 # Estilo para o gráfico
 plt.style.use('seaborn-v0_8')
@@ -58,10 +56,67 @@ plt.style.use('seaborn-v0_8')
 def rayleigh_dist(h):
     return 2 * np.abs(h) * np.exp(-(np.abs(h) ** 2))
 
+# Definindo o vetor h
+h = np.linspace(0, 2.25, 50000)
+
+# Calculando a PDF de Rayleigh
+rayleigh_pdf = rayleigh_dist(h)
+
+# Gráfico de Rayleigh
+plt.figure(figsize=(8, 6))
+plt.xlabel('|h|', fontsize=16)
+plt.ylabel('pdf', fontsize=16)
+plt.title('Rayleigh', fontsize=16)
+plt.grid(True, alpha=0.5)
+plt.plot(h, rayleigh_pdf)
+plt.show()
+
+```
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import i0
+
+# Estilo para o gráfico
+plt.style.use('seaborn-v0_8')
+
 # Função de distribuição Rician
 def rician_dist(h, K):
     abs_h = np.abs(h)
     return 2 * abs_h * (K + 1) * i0(2 * abs_h * np.sqrt(K * (K + 1))) * np.exp(-K - ((K + 1) * (abs_h ** 2)))
+
+# Definindo o vetor h
+h = np.linspace(0, 2.25, 50000)
+
+# Valores de K para a distribuição Rician
+Kvalues = [0, 2, 5, 10]
+
+# Gráfico de Rician
+plt.figure(figsize=(8, 6))
+plt.xlabel('|h|', fontsize=16)
+plt.ylabel('pdf', fontsize=16)
+plt.title('Rician', fontsize=16)
+plt.grid(True, alpha=0.5)
+
+for K in Kvalues:
+    rician = rician_dist(h, K)
+    plt.plot(h, rician, label=f'K = {K}')
+
+plt.legend(fontsize=16)
+plt.show()
+
+```
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import gamma
+
+# Estilo para o gráfico
+plt.style.use('seaborn-v0_8')
 
 # Função de distribuição Nakagami-m
 def nakagami_m_dist(h, m):
@@ -71,129 +126,136 @@ def nakagami_m_dist(h, m):
 # Definindo o vetor h
 h = np.linspace(0, 2.25, 50000)
 
-# Calculando a PDF de Rayleigh
-rayleigh_pdf = rayleigh_dist(h)
-
-# Valores de K para a distribuição Rician
-Kvalues = [0, 2, 5, 10]
-
 # Valores de m para a distribuição Nakagami-m
 mvalues = [1, 2, 3, 6]
 
-# Criando a figura e os subplots
-fig, axs = plt.subplots(1, 3, figsize=(26, 10))
-
-# Gráfico de Rayleigh
-axs[0].set_xlabel('|h|', fontsize=16)
-axs[0].set_ylabel('pdf', fontsize=16)
-axs[0].set_title('Rayleigh', fontsize=16)
-axs[0].grid(True, alpha=0.5)
-axs[0].plot(h, rayleigh_pdf)
-
-# Gráfico de Rician
-axs[1].set_xlabel('|h|', fontsize=16)
-axs[1].set_ylabel('pdf', fontsize=16)
-axs[1].set_title('Rician', fontsize=16)
-axs[1].grid(True, alpha=0.5)
-
-for K in Kvalues:
-    rician = rician_dist(h, K)
-    axs[1].plot(h, rician, label=f'K = {K}')
-
-axs[1].legend(fontsize=16)
-
 # Gráfico de Nakagami-m
-axs[2].set_xlabel('|h|', fontsize=16)
-axs[2].set_ylabel('pdf', fontsize=16)
-axs[2].set_title('Nakagami-m', fontsize=16)
-axs[2].grid(True, alpha=0.5)
+plt.figure(figsize=(8, 6))
+plt.xlabel('|h|', fontsize=16)
+plt.ylabel('pdf', fontsize=16)
+plt.title('Nakagami-m', fontsize=16)
+plt.grid(True, alpha=0.5)
 
 for m in mvalues:
     naka = nakagami_m_dist(h, m)
-    axs[2].plot(h, naka, label=f'm = {m}')
+    plt.plot(h, naka, label=f'm = {m}')
 
-axs[2].legend(fontsize=16)
-
-# Exibindo os gráficos
+plt.legend(fontsize=16)
 plt.show()
 
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Tarefa 2
 
 ```{python}
 #| echo: false
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.special import i0, gamma
 
 # Função de distribuição de potência Rayleigh
 def rayleigh_power_dist(h, Pr):
     return (1 / Pr) * np.exp(-1 * (np.abs(h) / Pr))
 
+# Definindo o vetor h e potência média Pr
+h = np.linspace(0, 5, 50000)
+Pr = 1  # 1 mW ou 0 dBm
+
+# Calculando a distribuição de potência Rayleigh
+rayleigh_power = rayleigh_power_dist(h, Pr)
+
+# Gráfico de potência Rayleigh
+plt.figure(figsize=(10, 6))
+plt.xlabel('|h|', fontsize=16)
+plt.ylabel('PDF', fontsize=16)
+plt.title('Rayleigh Power Distribution', fontsize=16)
+plt.grid(True, alpha=0.5)
+plt.plot(h, rayleigh_power)
+plt.show()
+
+```
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import i0
+
 # Função de distribuição de potência Rician
 def rician_power_dist(h, K, Pr):
     return ((1 + K) * np.exp(-K) / Pr) * np.exp(-(1 + K) * np.abs(h) / Pr) * i0(np.sqrt(4 * K * (1 + K) * np.abs(h) / Pr))
+
+# Definindo o vetor h e potência média Pr
+h = np.linspace(0, 5, 50000)
+Pr = 1  # 1 mW ou 0 dBm
+
+# Valores de K para a distribuição Rician
+Kvalues = [0, 2, 5, 10]
+
+# Gráfico de potência Rician
+plt.figure(figsize=(10, 6))
+plt.xlabel('|h|', fontsize=16)
+plt.ylabel('PDF', fontsize=16)
+plt.title('Rician Power Distribution', fontsize=16)
+plt.grid(True, alpha=0.5)
+
+for K in Kvalues:
+    rician = rician_power_dist(h, K, Pr)
+    plt.plot(h, rician, label=f'K = {K}')
+
+plt.legend(fontsize=16)
+plt.show()
+
+```
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import gamma
 
 # Função de distribuição de potência Nakagami-m
 def nakagami_m_power_dist(h, m, Pr):
     return (np.power(m / Pr, m) * np.power(np.abs(h), m - 1) * np.exp(-m * np.abs(h) / Pr)) / gamma(m)
 
-# Definindo o vetor h
+# Definindo o vetor h e potência média Pr
 h = np.linspace(0, 5, 50000)
-
-# Assumindo Pr = 1 mW ou 0 dBm
-Pr = 1
-
-# Calculando a distribuição de potência Rayleigh
-rayleigh_power = rayleigh_power_dist(h, Pr)
-
-# Valores de K para a distribuição Rician
-Kvalues = [0, 2, 5, 10]
+Pr = 1  # 1 mW ou 0 dBm
 
 # Valores de m para a distribuição Nakagami-m
 mvalues = [1, 2, 3, 6]
 
-# Criando a figura e os subplots
-fig, axs = plt.subplots(1, 3, figsize=(30, 10))
-
-# Gráfico de potência Rayleigh
-axs[0].set_xlabel('|h|', fontsize=16)
-axs[0].set_ylabel('PDF density function', fontsize=16)
-axs[0].set_title('Rayleigh', fontsize=16)
-axs[0].grid(True, alpha=0.5)
-axs[0].plot(h, rayleigh_power)
-
-# Gráfico de potência Rician
-axs[1].set_xlabel('|h|', fontsize=16)
-axs[1].set_ylabel('PDF', fontsize=16)
-axs[1].set_title('Rician', fontsize=16)
-axs[1].grid(True, alpha=0.5)
-
-for K in Kvalues:
-    rician = rician_power_dist(h, K, Pr)
-    axs[1].plot(h, rician, label=f'K = {K}')
-
-axs[1].legend(fontsize=16)
-
 # Gráfico de potência Nakagami-m
-axs[2].set_xlabel('|h|', fontsize=16)
-axs[2].set_ylabel('PDF', fontsize=16)
-axs[2].set_title('Nakagami-m', fontsize=16)
-axs[2].grid(True, alpha=0.5)
+plt.figure(figsize=(10, 6))
+plt.xlabel('|h|', fontsize=16)
+plt.ylabel('PDF', fontsize=16)
+plt.title('Nakagami-m Power Distribution', fontsize=16)
+plt.grid(True, alpha=0.5)
 
 for m in mvalues:
     naka = nakagami_m_power_dist(h, m, Pr)
-    axs[2].plot(h, naka, label=f'm = {m}')
+    plt.plot(h, naka, label=f'm = {m}')
 
-axs[2].legend(fontsize=16)
-
-# Exibindo os gráficos
+plt.legend(fontsize=16)
 plt.show()
+
 ```
-
-
-
-
 
 
 
