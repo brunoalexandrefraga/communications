@@ -42,8 +42,163 @@ format:
       cite-style: number
 ---
 
+```{python}
+#| echo: false
+def format(value):
+    if value >= 1e9:
+        return f"{value / 1e9:.2f} G"
+    elif value >= 1e6:
+        return f"{value / 1e6:.2f} M"
+    elif value >= 1e3:
+        return f"{value / 1e3:.2f} k"
+    elif value >= 1:
+        return f"{value:.2f} "
+    elif value >= 1e-3:
+        return f"{value * 1e3:.2f} m"
+    elif value >= 1e-6:
+        return f"{value * 1e6:.2f} µ"
+    elif value >= 1e-9:
+        return f"{value * 1e9:.2f} n"
+    elif value >= 1e-12:
+        return f"{value * 1e12:.2f} p"
+    elif value >= 1e-15:
+        return f"{value * 1e12:.2f} p"
+    else:
+        return f"{value:.0e} "
+```
+
+```{python}
+#| echo: false
+def format_simple(value, decimals=2):
+    format_string = f"{{:.{decimals}f}}"
+    return f"{format_string.format(value)}"
+```
+
+```{python}
+#| echo: false
+import scipy
+import numpy as np
+
+mobility_T1 = 1 #m/s
+freq_T1 = 2.4e9 #GHz
+band_T1 = 20e6 #MHz
+spread_delay_rms_T1 = 0.07e-6
+message_T1 = 19e-3
+
+_lambda_T1 = scipy.constants.c / freq_T1
+Tc_T1 = _lambda_T1/mobility_T1
+```
+
 # Tarefa 1
 
+Nesta tarefa, o objetivo é determinar o tempo e a banda de coerência de um sistema que opera com mobilidade de `{python} format(mobility_T1)`m/s, frequência de portadora de `{python} format(freq_T1)`Hz, banda de `{python} format(band_T1)`Hz, espalhamento de atraso rms de `{python} format(spread_delay_rms_T1)`s, e mensagens com duração inferior a `{python} format(message_T1)`s.
 
+Com esses valores, utiliza-se a seguinte equação para calcular $\lambda$
+
+$$
+\lambda=\frac{c}{f}
+$$
+
+resultando em $\lambda=$ `{python} format(_lambda_T1)`m. Logo após, utiliza-se a seguinte equação para calcular o tempo de coerência
+
+$$
+  T_c\approx \frac{1}{B_D}=\frac{\lambda}{v}
+$$
+
+resultando em um tempo de coerência $T_c=$ `{python} format(Tc_T1)`s.
+
+Como foi informado pelo enunciado do problema, o espalhamento de atraso rms é de $\sigma_\tau=$ `{python} format(spread_delay_rms_T1)`s. A banda de coerência pode ser calculada por
+
+$$
+  B_c=\frac{1}{5\sigma_\tau}
+$$
+
+```{python}
+#| echo: false
+Bc_T1 = 1/(5*spread_delay_rms_T1)
+```
+
+resultando em uma banda de coerência $B_c =$ `{python} format(Bc_T1)`Hz.
+
+```{python}
+#| echo: false
+  frac_msg_Tc = Tc_T1/message_T1
+  frac_B_Bc = band_T1/Bc_T1
+```
+
+Comparando o tempo de coerência (`{python} format(Tc_T1)`s) com o tempo necessário para o envio de um pacote (`{python} format(message_T1)`s), é possível classificar o canal como lento, uma vez que um pacote ocupa apenas `{python} format_simple(frac_msg_Tc)` do tempo de coerência. Além disso, o canal pode ser considerado seletivo em frequência, uma vez que a banda do canal é `{python} format_simple(frac_B_Bc, 0)` vezes maior que a banda de coerência.
+
+# Tarefa 2
+
+Agora, deseja-se calcular a banda de coerência de um canal de TV digital, cujo perfil de potências seja apresentado na [Tab. @tbl-distance-power]
+
+```{python}
+#| echo: false
+#| label: tbl-distance-power
+#| tbl-cap: "Potência medida em diferentes distâncias"
+#| output: asis
+
+# Vetores de dados
+multipercurso = [1, 2, 3, 4, 5, 6]
+atraso_us = [0, 0.3, 3.5, 4.4, 9.5, 12.7]
+atenuacao_dB = [0, 12, 4, 7, 15, 22]
+
+# Cabeçalhos
+header = "| Multipercurso | Atraso (µs) | Atenuação (dB) |\n"
+div = "|---------------|-------------|----------------|\n"
+
+# Formatação da tabela
+table = header + div
+for m, a, at in zip(multipercurso, atraso_us, atenuacao_dB):
+    table += f"| {m}             | {a:<11} | {at:<14} |\n"
+
+# Exibe a tabela em Markdown
+print(table)
+```
+
+Para calcular a banda de coerência, antes é necessário calcular a média do atraso dos percursos, $\bar{\tau}$, dada por
+
+$$
+  \bar{\tau} = \frac{\sum_k P_k \tau_k}{\sum_k P_k}
+$$
+
+e a média dos quadrados dos atrasos, $\overline{\tau^2}$, dada por
+
+$$
+  \overline{\tau^2} = \frac{\sum_k P_k \tau_k^2}{\sum_k P_k}
+$$
+
+e, em seguida, pode-se calcular o espalhamento de atraso RMS, $\sigma_\tau$,
+
+$$
+\sigma_\tau = \sqrt{\overline{\tau^2} - \bar{\tau}^2}
+$$
+
+```{python}
+#| echo: false
+import numpy as np
+
+# Dados
+multipercurso = [1, 2, 3, 4, 5, 6]
+atraso_us = [0, 0.3, 3.5, 4.4, 9.5, 12.7]  # Atrasos em microssegundos
+atenuacao_dB = [0, 12, 4, 7, 15, 22]  # Atenuação em dB
+
+# Conversão de unidades e potências
+atraso_s = [t * 1e-6 for t in atraso_us]  # Atrasos em segundos
+potencia_linear = [10 ** (-at / 10) for at in atenuacao_dB]  # Potência linear
+
+# Cálculo de \bar{\tau} (média ponderada dos atrasos)
+tau_bar = np.sum([p * t for p, t in zip(potencia_linear, atraso_s)]) / np.sum(potencia_linear)
+
+# Cálculo de \overline{\tau^2} (média dos quadrados dos atrasos)
+tau2_bar = np.sum([p * (t ** 2) for p, t in zip(potencia_linear, atraso_s)]) / np.sum(potencia_linear)
+
+# Cálculo de \sigma_\tau (espalhamento de atraso RMS)
+sigma_tau = np.sqrt(tau2_bar - tau_bar ** 2)
+
+Bc_T2 = 1/(5*sigma_tau)
+```
+
+Resultando em $\bar{\tau}=$ `{python} format(tau_bar)`s, $\overline{\tau^2}=$ `{python} format(tau2_bar)`$\text{s}^2$ e $\sigma_\tau=$ `{python} format(sigma_tau)`s. Resultando em uma banda de coerência de `{python} format(Bc_T2)`Hz. Portanto, o canal é seletivo em frequência porque a banda de coerência é muito menor que a largura de banda do sinal. Dessa forma, diferentes componentes espectrais do sinal sofrem atenuações distintas, caracterizando a seletividade em frequência.
 
 # References {-}
