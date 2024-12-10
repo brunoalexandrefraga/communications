@@ -39,6 +39,75 @@ format:
       cite-style: number
 ---
 
+# Questão
+
+Para a detecção correta de uma modulação, é necessário que se conheçam as condições do canal no receptor. Uma prática comum para estimar o canal é a utilização de uma sequência conhecida, como um *preamble* ou símbolos piloto, ou seja, uma série de dados conhecidos para que o sistema possa analisar e comparar com o que está sendo recebido. Esses símbolos conhecidos são transmitidos juntamente com os dados, permitindo que o receptor compare o sinal recebido com o esperado e, assim, estime o efeito do canal (fading, distorções). Essa estimativa é crucial para compensar distorções no sinal causadas pelo canal, como atenuação e desfasamento, permitindo uma decodificação um pouco mais precisa da modulação.
+
+# Tarefa 1
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy as sp
+from scipy.special import gamma, gammainc
+
+# Função para calcular a probabilidade de outage para o canal Rayleigh
+def rayleigh_outage(y_db, RB, N):
+    y_ = np.power(10, y_db / 10)  # Convertendo SNR de dB para linear
+    return np.power(1 - np.exp(-1 * (np.power(2, RB) - 1) / y_), N)
+
+# Função para calcular a probabilidade de outage para o canal Nakagami-m
+def nakagami_m_outage(y_db, RB, m, N):
+    y_ = np.power(10, y_db / 10)  # Convertendo SNR de dB para linear
+    return np.power(gammainc(m, (m * (np.power(2, RB) - 1)) / y_), N)
+
+# Parâmetros
+N_arr = np.array([1, 2, 3, 6])  # Tentativas ARQ para Rayleigh
+m_arr = np.array([2, 3, 6])  # Parâmetros m para Nakagami-m
+RB = 2  # Taxa de transmissão R/B = 2 bps/Hz
+SNR = np.arange(0.1, 60, 0.1)  # Intervalo de SNR (em dB)
+
+# Criando o gráfico
+plt.figure(figsize=(16, 10))
+plt.yscale('log')  # Escala logarítmica para a probabilidade de outage
+
+# Plotando para o canal Rayleigh
+for N in N_arr:
+    outage = rayleigh_outage(SNR, RB, N)
+    plt.plot(SNR, outage, label=f'Rayleigh (N = {N})')
+
+# Plotando para o canal Nakagami-m
+for m in m_arr:
+    outage = nakagami_m_outage(SNR, RB, m, 1)
+    plt.plot(SNR, outage, label=f'Nakagami (m = {m})', linestyle='--')
+
+# Configurações do gráfico
+plt.ylim(bottom=1e-6, top=1)  # Limites do eixo y
+plt.xlabel('SNR [dB]', fontsize=20)
+plt.ylabel('Probabilidade de Outage', fontsize=20)
+plt.tick_params(labelsize=16)
+plt.legend(fontsize=20)
+plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+plt.show()
+
+
+```
+
+Pode-se verificar que no canal Rayleigh sem diversidade, a probabilidade de outage é significativamente maior em comparação ao canal Nakagami-m (o que já é de se esperar), especialmente à medida que o parâmetro m aumenta. Entretanto, ao incluir o protocolo ARQ, o desempenho do canal Rayleigh se aproxima do Nakagami-m, mostrando que o ARQ pode melhorar consideravelmente o desempenho do canal Rayleigh.
+
+# Tarefa 2
+
+
+
+
+
+
+
+
+
+
+
 
 
 # References {-}

@@ -1,0 +1,96 @@
+---
+title: Diversidade na Recepção 
+subtitle: Atividade 09
+author:
+  - name: Bruno Alexandre Fraga
+    email: bruno.fraga@posgrad.ufsc.br
+    affiliations: 
+        - id: some-tech
+          name: Universidade Federal de Santa Catarina
+          department: Departamento de Engenharia Elétrica e Eletrônica
+          address: R. Delfino Conti
+          city: Florianópolis
+          state: Santa Catarina
+          postal-code: 88040-370
+abstract: |
+  Resumo da atividade.
+keywords: 
+  - Diversidade
+date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{steinmetz}
+          \usepackage[a4paper, margin=1in]{geometry}
+          \usepackage{graphicx} % Required for inserting images
+          \usepackage{circuitikz}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{amsthm}
+
+          \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+    keep-tex: true
+    journal:
+      name: Wireless Communications 
+      formatting: preprint
+      # model: 3p # Don't set a model with preprint
+      cite-style: number
+---
+
+
+
+# Tarefa 1
+
+```{python}
+#| echo: false
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parâmetros
+Eb_N0_dB = np.arange(0, 52, 2)  # Valores de Eb/N0 de 0 a 50 dB, com intervalos de 2
+EbN0Lin = 10 ** (Eb_N0_dB / 10)
+
+# Cálculo teórico da BER para diferentes esquemas
+# Sem diversidade (1 Tx, 1 Rx)
+theoryBer_no_diversity = 0.5 * (1 - 1 * (1 + 1 / EbN0Lin) ** (-0.5))
+
+# MRRC com 1 Tx e 2 Rx
+p = 1 / 2 - 1 / 2 * (1 + 1 / EbN0Lin) ** (-1 / 2)
+theoryBer_MRC_1Tx_2Rx = p**2 * (1 + 2 * (1 - p))
+
+# MRRC com 1 Tx e 4 Rx
+theoryBer_MRC_1Tx_4Rx = p**4 * (1 + 4 * (1 - p) + 6 * (1 - p)**2 + 4 * (1 - p)**3)
+
+# Novo esquema com 2 Tx e 1 Rx (Alamouti)
+pAlamouti = 1 / 2 - 1 / 2 * (1 + 2 / EbN0Lin) ** (-1 / 2)
+theoryBer_Alamouti_2Tx_1Rx = pAlamouti**2 * (1 + 2 * (1 - pAlamouti))
+
+# Novo esquema com 2 Tx e 2 Rx
+theoryBer_Alamouti_2Tx_2Rx = pAlamouti**4 * (1 + 4 * (1 - pAlamouti) + 6 * (1 - pAlamouti)**2 + 4 * (1 - pAlamouti)**3)
+
+# Plot
+plt.figure(figsize=(10,6))  # Ajustar o tamanho do gráfico para o padrão
+plt.semilogy(Eb_N0_dB, theoryBer_no_diversity, label='Rayleigh')
+plt.semilogy(Eb_N0_dB, theoryBer_Alamouti_2Tx_1Rx, label='Alamouti 2x1')
+plt.semilogy(Eb_N0_dB, theoryBer_MRC_1Tx_2Rx, label='MRC 1x2')
+
+# Configurações do gráfico
+plt.xlabel(r'$E_b/N_0$ (dB)')
+plt.ylabel('BER')
+plt.title('Taxa de Erro de Bit com Diversidade de Transmissão')
+plt.legend()
+plt.grid(True, which='both', linestyle='-', linewidth=1)  # Linhas de grade mais finas
+
+# Ajustes de limite dos eixos
+plt.ylim(1e-6, 1)  # de 10^0 a 10^-6 no eixo Y
+plt.xlim(0, 50)    # de 0 a 50 no eixo X
+plt.xticks(np.arange(0, 51, 5))  # Intervalo de 5 em 5 no eixo X
+
+plt.show()
+
+```
+
+
+# References {-}

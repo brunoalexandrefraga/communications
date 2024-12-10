@@ -1,0 +1,128 @@
+---
+title: Diversidade na Recepção 
+subtitle: Atividade 09
+author:
+  - name: Bruno Alexandre Fraga
+    email: bruno.fraga@posgrad.ufsc.br
+    affiliations: 
+        - id: some-tech
+          name: Universidade Federal de Santa Catarina
+          department: Departamento de Engenharia Elétrica e Eletrônica
+          address: R. Delfino Conti
+          city: Florianópolis
+          state: Santa Catarina
+          postal-code: 88040-370
+abstract: |
+  Resumo da atividade.
+keywords: 
+  - Diversidade
+date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{steinmetz}
+          \usepackage[a4paper, margin=1in]{geometry}
+          \usepackage{graphicx} % Required for inserting images
+          \usepackage{circuitikz}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{amsthm}
+
+          \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+    keep-tex: true
+    journal:
+      name: Wireless Communications 
+      formatting: preprint
+      # model: 3p # Don't set a model with preprint
+      cite-style: number
+---
+
+# Sistemas 
+
+
+
+# Questão
+
+A escolha entre diversidade, multiplexação espacial e beamforming depende diretamente do objetivo do sistema e das características do ambiente em que ele opera. A diversidade é uma técnica ideal para melhorar a robustez da comunicação em canais com desvanecimento severo, sendo especialmente útil em cenários onde a confiabilidade do sinal é essencial, como redes móveis operando em ambientes com alta densidade de obstáculos. Por outro lado, a multiplexação espacial é empregada para aumentar significativamente a capacidade do sistema, aproveitando os múltiplos caminhos independentes presentes no canal. Essa técnica é mais eficiente em cenários com alta relação sinal-ruído (SNR) e baixa correlação entre as antenas, tornando-se uma escolha preferencial para sistemas que priorizam altas taxas de dados. Já o beamforming destaca-se por sua capacidade de direcionar o sinal de forma precisa, maximizando a energia em um alvo específico e minimizando interferências. Essa abordagem é especialmente eficaz em sistemas onde há poucos usuários em linha de visão (LoS), como radares ou comunicações entre satélites e estações terrestres. Assim, cada técnica apresenta vantagens que atendem a diferentes demandas, variando conforme as necessidades do sistema e as condições do ambiente.
+
+
+# mMIMO
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy as sp
+from scipy.special import gamma, gammainc, erfc
+
+
+# Favorable propagation
+nM = 800
+M = np.arange(1, nM + 1, 1, dtype=np.int64)
+y = np.zeros_like(M, dtype=np.float64)
+
+h1 = (1/np.sqrt(2))*(np.random.randn(nM+1, 1) + 1j*np.random.randn(nM+1, 1))
+h2 = (1/np.sqrt(2))*(np.random.randn(nM+1, 1) + 1j*np.random.randn(nM+1, 1))
+for i in range(nM):
+  y[i] = np.abs(np.sum(h1[0:i+1]*h2[0:i+1]))/(i+1)
+
+# Configurações do gráfico
+plt.figure(figsize=(12, 8))  # Tamanho ajustado para proporção mais natural
+plt.plot(M, y, label='Uma realização', color='tab:blue', linewidth=2)
+
+# Ajuste de eixos e estilo
+plt.ylim(1e-5, 1)
+plt.xlim(0, nM)
+plt.xscale('linear')
+plt.yscale('log')
+plt.grid(visible=True, which='both', linestyle='--', linewidth=0.7, alpha=0.7)
+
+# Labels e título
+plt.xlabel('Número de Antenas [M]', fontsize=14, fontweight='bold')
+plt.ylabel(r'$\frac{|h_{1}^{H}h_{2}|}{M}$', fontsize=14, fontweight='bold')
+plt.title('Favorable Propagation', fontsize=18, fontweight='bold', pad=15)
+
+# Legenda e finalização
+plt.legend(fontsize=12, loc='best', frameon=True, edgecolor='gray')
+plt.show()
+
+```
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Channel Hardening
+nM = 800
+M = np.arange(1, nM + 1, 1, dtype=np.int64)
+y = np.zeros_like(M, dtype=np.float64)
+
+for i in range(nM):
+    h1 = (1/np.sqrt(2)) * (np.random.randn(i+1, 1) + 1j * np.random.randn(i+1, 1))
+    y[i] = np.abs(np.sum(h1.conjugate() * h1)) / (i+1)
+
+# Configurações do gráfico
+plt.figure(figsize=(12, 8))  # Tamanho ajustado para proporção mais comum
+plt.plot(M, y, label='Uma realização', color='tab:blue', linewidth=2)
+
+# Estilo do gráfico
+plt.grid(visible=True, which='both', linestyle='--', linewidth=0.7, alpha=0.7)
+plt.xlim(0, nM)  # Limites do eixo X
+plt.ylim(0, 2)  # Limites do eixo Y ajustados para valores esperados
+
+# Rótulos e título
+plt.xlabel('Número de Antenas [M]', fontsize=14, fontweight='bold')
+plt.ylabel(r'$\frac{\|h\|^{2}}{M}$', fontsize=14, fontweight='bold')
+plt.title('Channel Hardening', fontsize=18, fontweight='bold', pad=15)
+
+# Legenda
+plt.legend(fontsize=12, loc='best', frameon=True, edgecolor='gray')
+
+# Ajuste do layout e exibição
+plt.show()
+
+```
+
+
+# References {-}
