@@ -1,0 +1,274 @@
+---
+title: Propagação em Larga Escala - Parte 2
+subtitle: Laboratório 07
+author:
+  - name: Bruno Alexandre Fraga
+    email: bruno.fraga@posgrad.ufsc.br
+    affiliations: 
+        - id: some-tech
+          name: Universidade Federal de Santa Catarina
+          department: Departamento de Engenharia Elétrica e Eletrônica
+          address: R. Delfino Conti
+          city: Florianópolis
+          state: Santa Catarina
+          postal-code: 88040-370
+abstract: |
+  Este trabalho tem por objetivo consolidar a técnica de projeto de redes de casamento de impedância, em especial a técnica pela rede L. Para isso, é proposto realizar o casamento de impedância da saída de um amplificador para uma carga de 50 $\Omega$ de modo que a eficiência da potência dissipada na carga seja de 80%. Após algumas análises o projeto foi concluído com sucesso e realizada uma simulação Monte Carlo com 100 iterações para verificar a robustez do projeto por técnicas estatísticas. Os resultados obtidos foram brevemente discutidos.
+keywords: 
+  - Robustez
+  - Adaptação de impedância
+  - Análise estatística
+date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{steinmetz}
+          \usepackage[a4paper, margin=1in]{geometry}
+          \usepackage{graphicx} % Required for inserting images
+          \usepackage{circuitikz}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{amsthm}
+          \usepackage{comment}
+
+          \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+    keep-tex: true
+    journal:
+      name: RF Circuits
+      formatting: preprint
+      # model: 3p # Don't set a model with preprint
+      cite-style: number
+---
+
+# Tarefa
+
+Nesta tarefa, deseja-se analisar o efeito de fading (ou desvanecimento) que ocorre em comunicações sem fio, fazendo com que a potência instantânea recebida se comporte como uma variável aleatória (VA), não assumindo valor constante ao longo do tempo. Matematicamente:
+
+$$
+P_r = |h|^2 P_r,
+$$
+
+em que $P_r$ é a potência instantânea recebida, $P_r$ é a potência média recebida e $|h|$ representa a magnitude do fading, ou seja, a variação instantânea de amplitude. Assumimos que $E[|h|^2] = 1$.
+
+Dependendo do cenário, a VA $|h|$ pode ser bem modelada por diferentes distribuições de probabilidade. As distribuições mais utilizadas para modelar $|h|$ são as de Rayleigh, Rice ou Nakagami-m. Por exemplo, para o caso da distribuição de Nakagami-m, a função densidade de probabilidade (pdf) é:
+
+$$
+p_h(|h|) = \frac{2 m^m |h|^{2m - 1}}{\Gamma(m)} e^{-m |h|^2},
+$$
+
+onde $\Gamma(m)$ é a função Gama e $m$ é o parâmetro de Nakagami.
+
+O objetivo deste experimento é realizar o levantamento experimental da pdf de $|h|$. A seguir, veja um exemplo de como ajustar os parâmetros da pdf de Nakagami-m a um conjunto de medidas.
+
+
+```{python}
+#| echo: false
+# Leitura dos dois arquivos e armazenamento das variáveis comuns
+
+import numpy as np
+import os
+
+# Função de conversão
+def dbm_to_w(dbm):
+    return np.power(10, ((dbm / 10) - 3))
+
+# Caminho dos arquivos
+folder_path = '../Measures/Fading'
+
+# Arquivos a serem lidos
+files = [
+    'Fading_01_wLoS_nomove_6steps_Norus.txt',
+    'Fading_02_noLoS_wall_move_5steps_home.txt'
+]
+
+# Função para ler dados dos arquivos
+def read_file(file_name):
+    file_path = os.path.join(folder_path, file_name)
+    Pr = []
+    Pr_dbm = []
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            # Verificar se a linha contém erro CRC
+            if "CRC error" in line:
+                readings = -120  # Valor substituto para erro CRC
+            else:
+                try:
+                    readings = float(line.split(" | ")[-1])
+                except ValueError:
+                    readings = -120
+                    continue  # Pular linhas que não podem ser convertidas
+            Pr_dbm.append(readings)
+            Pr.append(dbm_to_w(readings))
+    return np.array(Pr), np.array(Pr_dbm)
+
+# Leitura dos arquivos
+Pr_1, Pr_dbm_1 = read_file(files[0])
+Pr_2, Pr_dbm_2 = read_file(files[1])
+
+```
+
+```{python}
+#| echo: false
+from scipy.stats import nakagami
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Função para plotar a PDF Nakagami e o histograma
+def plot_nakagami_pdf_histogram(Pr):
+    mean_Pr = np.mean(Pr)  # Média das médias
+    h = np.sqrt(Pr / mean_Pr)
+
+    # Implementação do estimador de Nakagami-m
+    p = 100  # Valor recomendado
+    u_p = np.sum(np.power(h, 1/p)) / len(h)
+    u_2 = np.sum(np.power(h, 2)) / len(h)
+    u_2p = np.sum(np.power(h, 2 + 1/p)) / len(h)
+
+    # Calcular o parâmetro m
+    m = (u_p * u_2) / ((u_2p - u_p * u_2)*2*p)
+
+    # Gerar a PDF Nakagami
+    x_nakagami = np.linspace(min(h), max(h), 10000)
+    pdf_nakagami = nakagami.pdf(x_nakagami, m)
+
+    # Plotar o histograma dos dados
+    plt.hist(h, bins=50, density=True, alpha=0.6, color='b', label='Histograma de |h|')
+
+    # Plotar a PDF Nakagami
+    plt.plot(x_nakagami, pdf_nakagami, 'r-', label=f"Nakagami m={m:.5f}")
+    plt.xlabel("|h|")
+    plt.ylabel("pdf(|h|)")
+    plt.title("PDF Nakagami com Histograma - Fading_01_wLoS_nomove_6steps_Norus.txt")
+    plt.legend()
+    plt.show()
+
+# Plotar a PDF Nakagami com histograma para o primeiro arquivo
+plot_nakagami_pdf_histogram(Pr_1)
+
+
+```
+
+```{python}
+#| echo: false
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Função para plotar o gráfico de RSSI
+def plot_rssi(Pr_dbm):
+    mean_Pr = np.mean(Pr_dbm)  # Média das médias
+    x_rssi = np.arange(len(Pr_dbm))
+
+    # Plotar o gráfico de RSSI
+    plt.plot(x_rssi, Pr_dbm, label='Instantâneo', linewidth=0.5)
+    plt.plot(x_rssi, np.full_like(x_rssi, mean_Pr), label='Médio', linewidth=2)
+    plt.xlabel('Medida')
+    plt.ylabel('RSSI (dBm)')
+    plt.title('RSSI - Fading_01_wLoS_nomove_6steps_Norus.txt')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# Plotar o gráfico de RSSI para o primeiro arquivo
+plot_rssi(Pr_dbm_1)
+
+```
+
+```{python}
+#| echo: false
+from scipy.stats import nakagami
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Função para plotar a PDF Nakagami e o histograma
+def plot_nakagami_pdf_histogram(Pr):
+    mean_Pr = np.mean(Pr)  # Média das médias
+    h = np.sqrt(Pr / mean_Pr)
+
+    # Implementação do estimador de Nakagami-m
+    p = 100  # Valor recomendado
+    u_p = np.sum(np.power(h, 1/p)) / len(h)
+    u_2 = np.sum(np.power(h, 2)) / len(h)
+    u_2p = np.sum(np.power(h, 2 + 1/p)) / len(h)
+
+    # Calcular o parâmetro m
+    m = (u_p * u_2) / ((u_2p - u_p * u_2)*2*p)
+
+    # Gerar a PDF Nakagami
+    x_nakagami = np.linspace(min(h), max(h), 10000)
+    pdf_nakagami = nakagami.pdf(x_nakagami, m)
+
+    # Plotar o histograma dos dados
+    plt.hist(h, bins=50, density=True, alpha=0.6, color='b', label='Histograma de |h|')
+
+    # Plotar a PDF Nakagami
+    plt.plot(x_nakagami, pdf_nakagami, 'r-', label=f"Nakagami m={m:.5f}")
+    plt.xlabel("|h|")
+    plt.ylabel("pdf(|h|)")
+    plt.title("PDF Nakagami com Histograma - Fading_02_noLoS_wall_move_5steps_home.txt")
+    plt.legend()
+    plt.show()
+
+# Plotar a PDF Nakagami com histograma para o segundo arquivo
+plot_nakagami_pdf_histogram(Pr_2)
+
+
+```
+
+```{python}
+#| echo: false
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Função para plotar o gráfico de RSSI
+def plot_rssi(Pr_dbm):
+    mean_Pr = np.mean(Pr_dbm)  # Média das médias
+    x_rssi = np.arange(len(Pr_dbm))
+
+    # Plotar o gráfico de RSSI
+    plt.plot(x_rssi, Pr_dbm, label='Instantâneo', linewidth=0.5)
+    plt.plot(x_rssi, np.full_like(x_rssi, mean_Pr), label='Médio', linewidth=2)
+    plt.xlabel('Medida')
+    plt.ylabel('RSSI (dBm)')
+    plt.title('RSSI - Fading_02_noLoS_wall_move_5steps_home.txt')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# Plotar o gráfico de RSSI para o segundo arquivo
+plot_rssi(Pr_dbm_2)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# References {-}
