@@ -39,9 +39,11 @@ format:
       cite-style: number
 ---
 
-# Sistemas 
+# Sistemas
 
+Um sistema com múltiplas antenas que pode-se comentar é a aplicação de *Distributed Transmit Beamforming* (DTB) em comunicações táticas @StephenLeak2018. Nesse sistema, o objetivo é de permitir que diferentes rádios individuais direcionem coletivamente o feixe de transmissão para um receptor distante, conseguindo abranger distâncias maiores. Esse sistema é projetado para melhorar a cobertura e o desempenho da comunicação em ambientes móveis como no caso de campanhas militares. O DTB apresentado pelo artigo citado foi testado em UHF e VHF, especificamente 442,5 MHz para uplink e 60,4 MHz para downlink, utilizando modulação QPSK.
 
+O que mais chama atenção no sistema citado é que o beamforming tradicional opera de uma forma em que um único transmissor com várias antenas direciona o sinal para um receptor específico. Dessa forma, as antenas no transmissor trabalham em conjunto para manipular a fase dos sinais transmitidos, de modo que, no ponto de recepção, as ondas do sinal se somem construtivamente, aumentando a intensidade do sinal recebido na direção do receptor. Entretanto, o DTB envolve múltiplos transmissores distribuídos geograficamente. Ao invés de depender de um único transmissor, o sistema utiliza vários transmissores espalhados para formar um feixe direcional.
 
 # Questão
 
