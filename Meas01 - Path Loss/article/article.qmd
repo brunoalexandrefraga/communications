@@ -1,0 +1,178 @@
+---
+title: Diversidade na Recepção 
+subtitle: Atividade 09
+author:
+  - name: Bruno Alexandre Fraga
+    email: bruno.fraga@posgrad.ufsc.br
+    affiliations: 
+        - id: some-tech
+          name: Universidade Federal de Santa Catarina
+          department: Departamento de Engenharia Elétrica e Eletrônica
+          address: R. Delfino Conti
+          city: Florianópolis
+          state: Santa Catarina
+          postal-code: 88040-370
+abstract: |
+  Resumo da atividade.
+keywords: 
+  - Diversidade
+date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{steinmetz}
+          \usepackage[a4paper, margin=1in]{geometry}
+          \usepackage{graphicx} % Required for inserting images
+          \usepackage{circuitikz}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{amsthm}
+
+          \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+    keep-tex: true
+    journal:
+      name: Wireless Communications 
+      formatting: preprint
+      # model: 3p # Don't set a model with preprint
+      cite-style: number
+---
+
+```{python}
+#| echo: false
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy.constants import c  # Constante da velocidade da luz
+from scipy.optimize import minimize
+
+# Dados
+Pt = 14  # Potência transmitida em dBm
+fc = 915e6  # Frequência de portadora em Hz
+d0 = 1  # Distância d0 em m (1m)
+step = 0.65 #step distance
+d = np.array([4*step, 7*step, 9*step, 10*step, 13*step])  # Distâncias em metros
+
+# Caminho relativo para os arquivos
+folder_path = os.path.join("..", "Measures", "Pathloss")
+directory = os.listdir(folder_path)
+rssi_mean = []
+
+# Nomes dos arquivos
+file_names = [
+    "1Pathloss1 - 4 steps.txt",
+    "2Pathloss2 - 7 steps.txt",
+    "3Pathloss3 - 9 steps.txt",
+    "4Pathloss5_10stepshigh.txt",
+    "5Pathloss4 - 13 steps.txt",
+]
+
+# Leitura e processamento dos arquivos
+for file in file_names:
+    file_path = os.path.join(folder_path, file)
+    rssi_mesured = []
+
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+
+        for line in lines:
+            readings = float(line.split(" | ")[-1])
+            rssi_mesured.append(np.power(10, (readings / 10)) * 0.001)
+
+    # Calcular a média do RSSI e adicionar à lista
+    if rssi_mesured:
+        rssi_mean.append(10 * np.log10(np.mean(rssi_mesured) / 0.001))
+
+# Função que modela o Pr(d_i) usando o modelo log-distância
+def Pr_log_distance(n_, d_):
+    # Cálculo de Pr(d0) usando o modelo de propagação livre
+    fspl_d0 = 20 * np.log10(d0) + 20 * np.log10(fc) + 20 * np.log10(4 * np.pi / c)
+    Pr_d0 = Pt - fspl_d0  # Potência recebida em d0
+    return Pr_d0 - 10 * n_ * np.log10(d_ / d0)
+
+# Função de erro quadrático J(n)
+def j(n_, d_, rssi_mean_):
+    Pr_estimated = Pr_log_distance(n_, d_)
+    squared_error = np.sum((rssi_mean_ - Pr_estimated) ** 2)
+    return squared_error
+
+# Função para encontrar o valor ótimo de n que minimiza o erro
+def n(d_, rssi_mean_):
+    result = minimize(j, x0=[1e-3], args=(d_, rssi_mean_), bounds=[(0, None)])
+    return result.x[0]
+
+# Encontrar o valor ótimo de n
+n_optimal = n(d, rssi_mean)
+Pr_estimated_optimal = Pr_log_distance(n_optimal, d)
+```
+
+
+Nesta tarefa, deseja-se calcular a perda de propagação seguindo o modelo log-distância. No modelo log-distância, a potência média recebida $P_r(d)$ em determinada distância $d$ pode ser estimada como
+
+$$
+P_r(d) = P_r(d_0) - 10n \log_{10} \left( \frac{d}{d_0} \right)
+$$
+
+em que $d$ é a distância entre transmissor e receptor, e $P_r(d_0)$ é a potência média recebida em uma distância de referência $d_0$. Essa potência média pode ser obtida utilizando o modelo do espaço livre e $n$ corresponde ao expoente de perda de percurso, o qual é obtido de forma a minimizar o erro entre o modelo e as medidas reais.
+
+Os resultados aqui apresentados foram realizados na sede da empresa Norus, no bairro Trindade, Florianópolis - SC, cuja imagem pode ser visualizada na [Fig. @fig-biased-circuit].
+
+
+![Amplificador devidamente polarizado](../images/local.jpeg){width=300, #fig-biased-circuit}
+
+Realizando diversas medidas de RSSI em distâncias distintas, sendo $\text{RSSI}_i$ a RSSI média das medidas realizadas a uma distância $d_i$, enquanto $P_r(d_i)$ corresponde à estimativa desta RSSI usando o modelo log-distância. A [Tab. @tbl-distance-power] apresenta as distâncias e as potências médias medidas.
+
+```{python}
+#| echo: false
+#| label: tbl-distance-power
+#| tbl-cap: "Potência medida em diferentes distâncias"
+#| output: asis
+
+# Criar a tabela em Markdown
+header = "| i | Distância (m) | RSSI (dBm) |\n"
+div = "|---|---------------|------------|\n"
+table = header + div
+
+# Preencher a tabela com os dados
+for i, (dist, rssi) in enumerate(zip(d, rssi_mean), start=1):
+    table += f"| {i} | {dist:.2f}        | {rssi:.2f}    |\n"
+
+# Exibe a tabela em Markdown
+print(table)
+```
+
+A soma do erro quadrático entre as medidas e as estimativas é dado por
+
+$$
+J(n) = \sum_{i=1}^{k} \bigg[ \text{RSSI}_i - P_r(d_i) \bigg]^2
+$$
+
+```{python}
+#| echo: false
+def format_simple(value, decimals=2):
+    format_string = f"{{:.{decimals}f}}"
+    return f"{format_string.format(value)}"
+```
+
+Em seguida, é possível encontrar o valor de $n$ que minimiza o erro $J(n)$, esse valor é $n=$ `{python} format_simple(n_optimal)`.
+
+```{python}
+# Plotar os resultados com eixo linear
+plt.figure(figsize=(10, 6))
+plt.plot(d, Pr_estimated_optimal, label=f"Estimated RSSI (n={n_optimal:.2f})", color="blue")
+plt.scatter(d, rssi_mean, label="Measured RSSI", color="red")
+plt.xlabel("d (m)")  # Eixo X agora em escala linear
+plt.ylabel("RSSI (dBm)")
+plt.title("Measured vs Estimated RSSI (Log-Distance Model)")
+plt.legend()
+plt.grid(which="both", linestyle="--", linewidth=0.5)
+plt.show()
+
+```
+
+
+
+
+# References {-}
