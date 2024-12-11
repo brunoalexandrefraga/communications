@@ -1,0 +1,63 @@
+---
+title: Amplificadores de Potência para OFDM
+subtitle: Trabalho Final
+author:
+  - name: Bruno Alexandre Fraga
+    email: bruno.fraga@posgrad.ufsc.br
+    affiliations: 
+        - id: some-tech
+          name: Universidade Federal de Santa Catarina
+          department: Departamento de Engenharia Elétrica e Eletrônica
+          address: R. Delfino Conti
+          city: Florianópolis
+          state: Santa Catarina
+          postal-code: 88040-370
+abstract: |
+  Este trabalho apresenta duas técnicas de múltiplo acesso ao meio que são bem utilizadas: CSMA e Aloha. Esses protocolos de acesso ao meio desempenham papéis importantes em diferentes padrões de comunicação. CSMA é frequentemente utilizada em redes locais sem fio, enquanto Aloha tem aplicação em sistemas de comunicação via satélite e redes de sensores.
+keywords: 
+  - Amplificadores de Potência
+  - Circuitos de Radiofrequência
+  - OFDM
+date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{steinmetz}
+          \usepackage[a4paper, margin=1in]{geometry}
+          \usepackage{graphicx} % Required for inserting images
+          \usepackage{circuitikz}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{amsthm}
+          \usepackage{comment}
+
+          \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+    keep-tex: true
+    journal:
+      name: Comunicações sem Fio
+      formatting: preprint
+      # model: 3p # Don't set a model with preprint
+      cite-style: number
+---
+
+# Introdução
+
+## OFDM
+
+## Amaplificadores de Potência
+
+Os amplificadores de potência (PAs) desempenham um papel fundamental na cadeia de transmissão de RF, sendo responsáveis por fornecer a potência necessária para transmitir sinais de alta qualidade a longas distâncias. No contexto de sistemas de comunicação modernos, como aqueles baseados em OFDM, o design de amplificadores de potência se torna ainda mais desafiador devido à necessidade de equilibrar a eficiência com a distorção não linear. Amplificadores de potência são os componentes mais exigentes em termos de consumo de energia em transceptores RF, e sua eficiência é crucial para a viabilidade energética dos sistemas @steer2019microwavev5.
+
+Ao contrário de amplificadores de sinal pequeno, que podem ser projetados utilizando técnicas lineares, os amplificadores de potência requerem ferramentas de simulação não lineares e otimizações laboratoriais para atingir a eficiência desejada sem comprometer a qualidade do sinal transmitido. O design desses amplificadores envolve um trade-off entre a distorção e a eficiência, sendo necessário controlar fenômenos como a compressão de ganho, que podem degradar a performance das modulações @razavi2011rf.
+
+Ao longo deste trabalho será abordado alguns cuidados necessários para se realizar o design de amplificadores de potência, com foco nas limitações impostas por esses dispositivos nas arquiteturas de transmissor. Embora o tratamento completo desse tópico seja extenso, buscamos fornecer uma ideia básica sobre esse assunto, destacando a importância da caracterização da não linearidade dos amplificadores de potência e sua relação com as técnicas de modulação utilizadas em OFDM.
+
+# Considerações sobre PAs para OFDM
+
+# Estudo de caso
+
+# Conclusão
+
+# References {-}
