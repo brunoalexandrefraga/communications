@@ -1,6 +1,6 @@
 ---
-title: Diversidade na Recepção 
-subtitle: Atividade 09
+title: Propagação em Larga Escala - Parte 2
+subtitle: Atividade 02
 author:
   - name: Bruno Alexandre Fraga
     email: bruno.fraga@posgrad.ufsc.br
@@ -13,9 +13,11 @@ author:
           state: Santa Catarina
           postal-code: 88040-370
 abstract: |
-  Resumo da atividade.
+  Neste trabalho, são analisados modelos de propagação de sinais em canais de comunicação sem fio. Na Tarefa 1, é estimado um modelo de perda por log-distância utilizando medidas experimentais e o modelo de espaço livre para calcular a potência recebida a uma distância de referência. A potência recebida é estimada para 200 m, e uma curva representando o modelo é traçada até 1 km. Na Tarefa 2, é estudado o desempenho de um sistema com propagação log-normal para determinar o alcance máximo que assegure uma taxa mínima de sucesso de 90%, considerando restrições de relação sinal-ruído (SNR).
 keywords: 
-  - Diversidade
+  - Propagação de sinais
+  - Larga escala
+  - Probabilidade de outage
 date: last-modified
 bibliography: bibliography.bib
 format:
@@ -29,11 +31,12 @@ format:
           \usepackage{amsmath}
           \usepackage{amssymb}
           \usepackage{amsthm}
+          \usepackage{comment}
 
           \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
     keep-tex: true
     journal:
-      name: Wireless Communications 
+      name: Comunicações sem Fio
       formatting: preprint
       # model: 3p # Don't set a model with preprint
       cite-style: number
