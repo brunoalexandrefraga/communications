@@ -13,11 +13,11 @@ author:
           state: Santa Catarina
           postal-code: 88040-370
 abstract: |
-  Neste trabalho, são analisados modelos de propagação de sinais em canais de comunicação sem fio. Na Tarefa 1, é estimado um modelo de perda por log-distância utilizando medidas experimentais e o modelo de espaço livre para calcular a potência recebida a uma distância de referência. A potência recebida é estimada para 200 m, e uma curva representando o modelo é traçada até 1 km. Na Tarefa 2, é estudado o desempenho de um sistema com propagação log-normal para determinar o alcance máximo que assegure uma taxa mínima de sucesso de 90%, considerando restrições de relação sinal-ruído (SNR).
+  Este trabalho apresenta duas técnicas de múltiplo acesso ao meio que são bem utilizadas: CSMA e Aloha. Esses protocolos de acesso ao meio desempenham papéis importantes em diferentes padrões de comunicação. CSMA é frequentemente utilizada em redes locais sem fio, enquanto Aloha tem aplicação em sistemas de comunicação via satélite e redes de sensores.
 keywords: 
-  - Propagação de sinais
-  - Larga escala
-  - Probabilidade de outage
+  - CSMA
+  - Aloha
+  - Múltiplo Acesso ao meio
 date: last-modified
 bibliography: bibliography.bib
 format:
@@ -46,19 +46,19 @@ format:
 
 O CSMA (Carrier Sense Multiple Access) é um protocolo de controle de acesso ao meio (MAC) utilizado para reduzir a probabilidade de colisões de quadros em redes de computadores. Seu funcionamento se baseia em alguns passos simples: antes de transmitir, um dispositivo verifica se o meio está livre de outras transmissões; caso esteja livre, o dispositivo envia o pacote; se ocorrer uma colisão, os dispositivos envolvidos aguardam um tempo aleatório antes de tentar novamente.
 
-![Amplificador devidamente polarizado](../images/csma-nonpersistent.png){width=300, #fig-biased-circuit}
+![CSMA non-persistent](../images/csma-nonpersistent.png){width=300, #fig-biase3-circuit}
 
 O CSMA é amplamente utilizado em redes Ethernet, presentes na maioria das redes locais atuais. Existem variações desse protocolo, como o CSMA/CA (Carrier Sense Multiple Access with Collision Avoidance) e o CSMA/CD (Carrier Sense Multiple Access with Collision Detection). O CSMA/CA tem como objetivo evitar colisões ao permitir que os nós transmitam apenas quando o canal estiver livre. Essa variação é especialmente importante em redes sem fio, onde o CSMA/CD não é viável, pois os transmissores sem fio desativam seus receptores durante a transmissão dos pacotes.
 
-![Amplificador devidamente polarizado](../images/csma-ppersitent.png.png){width=300, #fig-biased-circuit}
+![CSMA p-persistent](../images/csma-ppersitent.png){width=300, #fig-biased-2ircuit}
 
 # Aloha
 
 O protocolo Aloha é um método de controle de acesso ao meio utilizado em redes de comunicação para permitir que dispositivos compartilhem um canal de transmissão de forma eficiente. Ele funciona de maneira simples: quando um dispositivo deseja transmitir dados, ele envia o pacote sem verificar se o canal está livre. Caso ocorra uma colisão com outro pacote, os dispositivos envolvidos aguardam um tempo aleatório antes de tentar retransmitir.
 
-![Amplificador devidamente polarizado](../images/Slotted-ALOHA-2-660.png.png){width=300, #fig-biased-circuit}
+![Aloha](../images/Slotted-ALOHA-2-660.png){width=300, #fig-biased-circui1}
 
-O Aloha foi originalmente desenvolvido para redes de satélites e tem duas versões principais: o Aloha puro (Pure Aloha) e o Aloha com slots de tempo (Slotted Aloha), apresentado na [Fig. @]. No Aloha puro, como pode ser visto na [Fig. @] , os dispositivos transmitem a qualquer momento, enquanto no Aloha com slots de tempo, a transmissão ocorre apenas no início de intervalos de tempo pré-determinados, o que reduz as colisões e melhora a eficiência do canal. Embora o protocolo Aloha seja simples, ele não é muito eficiente em redes com tráfego intenso, devido à alta probabilidade de colisões.
+O Aloha foi originalmente desenvolvido para redes de satélites e tem duas versões principais: o Aloha puro (Pure Aloha) e o Aloha com slots de tempo (Slotted Aloha). No Aloha puro os dispositivos transmitem a qualquer momento, enquanto no Aloha com slots de tempo, a transmissão ocorre apenas no início de intervalos de tempo pré-determinados, o que reduz as colisões e melhora a eficiência do canal. Embora o protocolo Aloha seja simples, ele não é muito eficiente em redes com tráfego intenso, devido à alta probabilidade de colisões.
 
 
 # References {-}

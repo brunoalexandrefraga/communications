@@ -13,7 +13,7 @@ author:
           state: Santa Catarina
           postal-code: 88040-370
 abstract: |
-  Neste trabalho, são analisados modelos de propagação de sinais em canais de comunicação sem fio. Na Tarefa 1, é estimado um modelo de perda por log-distância utilizando medidas experimentais e o modelo de espaço livre para calcular a potência recebida a uma distância de referência. A potência recebida é estimada para 200 m, e uma curva representando o modelo é traçada até 1 km. Na Tarefa 2, é estudado o desempenho de um sistema com propagação log-normal para determinar o alcance máximo que assegure uma taxa mínima de sucesso de 90%, considerando restrições de relação sinal-ruído (SNR).
+   explora o uso de técnicas baseadas em múltiplas antenas, com foco n. Este trabalho apresenta como um exemplo de sistema que utiliza múltiplas antenas, a aplicação de Distributed Transmit Beamforming (DTB) em comunicações táticas. Além disso, também analisa-se favorable propagation e channel hardening em sistemas massive MIMO (mMIMO), demonstrando suas características em função do número de antenas.
 keywords: 
   - Propagação de sinais
   - Larga escala
@@ -55,6 +55,7 @@ A escolha entre diversidade, multiplexação espacial e beamforming depende dire
 # mMIMO
 
 ```{python}
+#| echo: false
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
@@ -94,6 +95,7 @@ plt.show()
 ```
 
 ```{python}
+#| echo: false
 import numpy as np
 import matplotlib.pyplot as plt
 
