@@ -46,6 +46,54 @@ format:
 
 ## OFDM
 
+OFDM (Orthogonal Frequency Division Multiplexing) é uma técnica de modulação de múltiplos portadores que divide um fluxo de dados em múltiplos subfluxos, transmitidos simultaneamente por meio de canais de subportadoras ortogonais, um exemplo de tais subportadoras pode ser visualizado na [Fig. @fig-subportadoras]. A principal vantagem do OFDM é sua capacidade de lidar eficientemente com canais de comunicação com alta dispersão de tempo, minimizando a interferência entre símbolos e proporcionando uma modulação robusta contra distúrbios causados por desvanecimento do canal.
+
+```{python}
+#| echo: false
+#| label: fig-subportadoras
+#| fig-cap: "Sinal OFDM com diversas subportadoras"
+
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+
+NoOfCarriers = 11
+interval = math.pi/50
+f = np.arange((-5*math.pi),(5*math.pi),interval)
+fnoiseMax = 3
+iMin = -(NoOfCarriers-1)//2
+iMax =  (NoOfCarriers-1)//2
+csum = np.zeros(len(f))
+fList = [];cList = []
+
+ax = plt.subplot(111)
+
+for i in range(iMin,iMax):
+    fnoise = fnoiseMax*(np.random.uniform(-1,1))
+    fshift = (i * (1//math.pi) * math.pi) + fnoise
+    c = np.sinc(f - fshift)
+    csum = csum + c[i]
+    fList = [fList,fshift]
+    cList = [cList,max(c)]
+    ax.plot(f, c)
+
+plt.grid(True)
+plt.show()
+```
+
+No funcionamento do sistema OFDM, o fluxo de dados de entrada é primeiramente modulado por um modulador QAM (Quadrature Amplitude Modulation), resultando em uma sequência de símbolos complexos. Esses símbolos são então passados por um conversor serial-paralelo, que os distribui nas N subportadoras do sistema. A conversão para o domínio do tempo é realizada através de uma Transformada Discreta de Fourier Inversa (IDFT), o que gera um sinal multicanal modulado. Para prevenir a interferência entre símbolos, é adicionada uma prefixo cíclico (cyclic prefix), que repete uma parte do símbolo OFDM para evitar a distorção causada pela resposta ao impulso do canal.
+
+No receptor, o sinal é amostrado, e o prefixo cíclico é removido, permitindo a recuperação dos símbolos transmitidos através da Transformada Rápida de Fourier (FFT). O uso do prefixo cíclico, ou até mesmo de um prefixo de zeros, permite eliminar a ISI e melhorar a robustez do sistema. A eficiência da implementação digital do OFDM também se destaca, uma vez que o processo de modulação e demodulação é simplificado pelo uso de FFTs e IFFTs, sendo altamente adequado para sistemas modernos de comunicação digital.
+
+No contexto de OFDM, cada subcanal opera a uma taxa de dados inferior à taxa total do sistema, e o sinal transmitido em cada subcanal é sujeito a uma atenuação variável, o que pode ser corrigido por técnicas de equalização de frequência. A vantagem dessa estrutura multicarrier é que ela permite a alocação eficiente de recursos de banda, reduzindo o impacto de interferências e melhorando a eficiência espectral, especialmente em canais sujeitos a desvanecimento rápido @goldsmith2020wireless.
+
+
+
+
+
+
+
+
 ## Amaplificadores de Potência
 
 Os amplificadores de potência (PAs) desempenham um papel fundamental na cadeia de transmissão de RF, sendo responsáveis por fornecer a potência necessária para transmitir sinais de alta qualidade a longas distâncias. No contexto de sistemas de comunicação modernos, como aqueles baseados em OFDM, o design de amplificadores de potência se torna ainda mais desafiador devido à necessidade de equilibrar a eficiência com a distorção não linear. Amplificadores de potência são os componentes mais exigentes em termos de consumo de energia em transceptores RF, e sua eficiência é crucial para a viabilidade energética dos sistemas @steer2019microwavev5.
