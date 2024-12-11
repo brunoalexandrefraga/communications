@@ -1,6 +1,6 @@
 ---
-title: Medições - Parte 2
-subtitle: Pequena Escala
+title: Medições - Pequena Escala
+subtitle: Parte 2
 author:
   - name: Bruno Alexandre Fraga
     email: bruno.fraga@posgrad.ufsc.br

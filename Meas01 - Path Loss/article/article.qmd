@@ -1,6 +1,6 @@
 ---
-title: Medições - Parte 1
-subtitle: Larga Escala
+title: Medições - Larga Escala
+subtitle: Parte 1
 author:
   - name: Bruno Alexandre Fraga
     email: bruno.fraga@posgrad.ufsc.br

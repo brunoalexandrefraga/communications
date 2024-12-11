@@ -1,6 +1,6 @@
 ---
 title: Propagação em Pequena Escala - Parte 2
-subtitle: Atividade 02
+subtitle: Atividade 04
 author:
   - name: Bruno Alexandre Fraga
     email: bruno.fraga@posgrad.ufsc.br
