@@ -13,11 +13,10 @@ author:
           state: Santa Catarina
           postal-code: 88040-370
 abstract: |
-  Neste trabalho, são analisados modelos de propagação de sinais em canais de comunicação sem fio. Na Tarefa 1, é estimado um modelo de perda por log-distância utilizando medidas experimentais e o modelo de espaço livre para calcular a potência recebida a uma distância de referência. A potência recebida é estimada para 200 m, e uma curva representando o modelo é traçada até 1 km. Na Tarefa 2, é estudado o desempenho de um sistema com propagação log-normal para determinar o alcance máximo que assegure uma taxa mínima de sucesso de 90%, considerando restrições de relação sinal-ruído (SNR).
+  Este trabalho investiga características de fading em enlaces de comunicação sem fio, por meio da análise de medidas de RSSI em diferentes cenários. Foram coletadas uma grande quantidade de amostras de RSSI em um ambiente com linha de visada estática e em um ambiente sem linha de visada com movimentação moderada. A partir dos dados, determinou-se o parâmetro m de Nakagami que melhor ajusta as distribuições de fading, permitindo identificar os modelos mais adequados para cada cenário. O estudo aborda a aplicação prática das distribuições de fading e sua relevância para o entendimento e otimização de enlaces sem fio.
 keywords: 
-  - Propagação de sinais
-  - Larga escala
-  - Probabilidade de outage
+  - Distribuições estatísticas
+  - Fading
 date: last-modified
 bibliography: bibliography.bib
 format:
@@ -44,7 +43,7 @@ format:
 
 # Tarefa
 
-Nesta tarefa, deseja-se analisar o efeito de fading (ou desvanecimento) que ocorre em comunicações sem fio, fazendo com que a potência instantânea recebida se comporte como uma variável aleatória (VA), não assumindo valor constante ao longo do tempo. Matematicamente:
+Nesta tarefa, deseja-se analisar o efeito de fading (ou desvanecimento) que ocorre em comunicações sem fio, fazendo com que a potência instantânea recebida se comporte como uma, não assumindo valor constante ao longo do tempo. Matematicamente:
 
 $$
 P_r = |h|^2 P_r,
@@ -52,15 +51,13 @@ $$
 
 em que $P_r$ é a potência instantânea recebida, $P_r$ é a potência média recebida e $|h|$ representa a magnitude do fading, ou seja, a variação instantânea de amplitude. Assumimos que $E[|h|^2] = 1$.
 
-Dependendo do cenário, a VA $|h|$ pode ser bem modelada por diferentes distribuições de probabilidade. As distribuições mais utilizadas para modelar $|h|$ são as de Rayleigh, Rice ou Nakagami-m. Por exemplo, para o caso da distribuição de Nakagami-m, a função densidade de probabilidade (pdf) é:
+Dependendo do cenário, $|h|$ pode ser bem modelada por diferentes distribuições de probabilidade. Uma das distribuições mais utilizadas para modelar $|h|$ é a distribuição de Nakagami-m. Para esse caso, a função densidade de probabilidade (PDF) é @goldsmith2020wireless
 
 $$
 p_h(|h|) = \frac{2 m^m |h|^{2m - 1}}{\Gamma(m)} e^{-m |h|^2},
 $$
 
-onde $\Gamma(m)$ é a função Gama e $m$ é o parâmetro de Nakagami.
-
-O objetivo deste experimento é realizar o levantamento experimental da pdf de $|h|$. A seguir, veja um exemplo de como ajustar os parâmetros da pdf de Nakagami-m a um conjunto de medidas.
+onde $\Gamma(m)$ é a função Gama e $m$ é o parâmetro de Nakagami. O objetivo deste experimento é realizar o levantamento experimental da PDF de $|h|$.
 
 
 ```{python}
@@ -141,7 +138,7 @@ def plot_nakagami_pdf_histogram(Pr):
     plt.plot(x_nakagami, pdf_nakagami, 'r-', label=f"Nakagami m={m:.5f}")
     plt.xlabel("|h|")
     plt.ylabel("pdf(|h|)")
-    plt.title("PDF Nakagami com Histograma - Fading_01_wLoS_nomove_6steps_Norus.txt")
+    plt.title("PDF")
     plt.legend()
     plt.show()
 
@@ -166,7 +163,7 @@ def plot_rssi(Pr_dbm):
     plt.plot(x_rssi, np.full_like(x_rssi, mean_Pr), label='Médio', linewidth=2)
     plt.xlabel('Medida')
     plt.ylabel('RSSI (dBm)')
-    plt.title('RSSI - Fading_01_wLoS_nomove_6steps_Norus.txt')
+    plt.title('RSSI')
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -207,7 +204,7 @@ def plot_nakagami_pdf_histogram(Pr):
     plt.plot(x_nakagami, pdf_nakagami, 'r-', label=f"Nakagami m={m:.5f}")
     plt.xlabel("|h|")
     plt.ylabel("pdf(|h|)")
-    plt.title("PDF Nakagami com Histograma - Fading_02_noLoS_wall_move_5steps_home.txt")
+    plt.title("PDF")
     plt.legend()
     plt.show()
 
@@ -232,7 +229,7 @@ def plot_rssi(Pr_dbm):
     plt.plot(x_rssi, np.full_like(x_rssi, mean_Pr), label='Médio', linewidth=2)
     plt.xlabel('Medida')
     plt.ylabel('RSSI (dBm)')
-    plt.title('RSSI - Fading_02_noLoS_wall_move_5steps_home.txt')
+    plt.title('RSSI')
     plt.legend()
     plt.grid(True)
     plt.show()
