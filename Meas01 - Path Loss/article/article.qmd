@@ -13,11 +13,10 @@ author:
           state: Santa Catarina
           postal-code: 88040-370
 abstract: |
-  Neste trabalho, são analisados modelos de propagação de sinais em canais de comunicação sem fio. Na Tarefa 1, é estimado um modelo de perda por log-distância utilizando medidas experimentais e o modelo de espaço livre para calcular a potência recebida a uma distância de referência. A potência recebida é estimada para 200 m, e uma curva representando o modelo é traçada até 1 km. Na Tarefa 2, é estudado o desempenho de um sistema com propagação log-normal para determinar o alcance máximo que assegure uma taxa mínima de sucesso de 90%, considerando restrições de relação sinal-ruído (SNR).
+  Este trabalho tem como objetivo caracterizar um ambiente de comunicação sem fio através de medições de potência do sinal recebido (RSSI) e a aplicação do modelo log-distância. Realizaram-se medidas de RSSI em diferentes distâncias entre transmissor e receptor, com análise dos valores médios na escala logarítmica e cálculo do expoente de perda de percurso que minimiza o erro quadrático entre o modelo e os dados medidos. O estudo inclui gráficos comparativos, avaliação de desvios entre medidas e modelo, e discussão sobre a aplicabilidade do mesmo expoente de perda de percurso em outros cenários. Os resultados fornecem insights sobre o comportamento do canal de propagação e a precisão do modelo log-distância no ambiente caracterizado.  
 keywords: 
-  - Propagação de sinais
-  - Larga escala
-  - Probabilidade de outage
+  - Medição de sinais
+  - Perda de propagação
 date: last-modified
 bibliography: bibliography.bib
 format:
@@ -123,7 +122,7 @@ em que $d$ é a distância entre transmissor e receptor, e $P_r(d_0)$ é a potê
 Os resultados aqui apresentados foram realizados na sede da empresa Norus, no bairro Trindade, Florianópolis - SC, cuja imagem pode ser visualizada na [Fig. @fig-biased-circuit].
 
 
-![Amplificador devidamente polarizado](../images/local.jpeg){width=300, #fig-biased-circuit}
+![Ambiente de medição](../images/local.jpeg){width=300, #fig-biased-circuit}
 
 Realizando diversas medidas de RSSI em distâncias distintas, sendo $\text{RSSI}_i$ a RSSI média das medidas realizadas a uma distância $d_i$, enquanto $P_r(d_i)$ corresponde à estimativa desta RSSI usando o modelo log-distância. A [Tab. @tbl-distance-power] apresenta as distâncias e as potências médias medidas.
 
@@ -162,18 +161,24 @@ def format_simple(value, decimals=2):
 Em seguida, é possível encontrar o valor de $n$ que minimiza o erro $J(n)$, esse valor é $n=$ `{python} format_simple(n_optimal)`.
 
 ```{python}
+#| echo: false
 # Plotar os resultados com eixo linear
 plt.figure(figsize=(10, 6))
-plt.plot(d, Pr_estimated_optimal, label=f"Estimated RSSI (n={n_optimal:.2f})", color="blue")
-plt.scatter(d, rssi_mean, label="Measured RSSI", color="red")
-plt.xlabel("d (m)")  # Eixo X agora em escala linear
+plt.plot(d, Pr_estimated_optimal, label=f"Estimado (n={n_optimal:.2f})", color="blue")
+plt.scatter(d, rssi_mean, label="Medido", color="red")
+plt.xlabel("Distância (m)")  # Eixo X agora em escala linear
 plt.ylabel("RSSI (dBm)")
-plt.title("Measured vs Estimated RSSI (Log-Distance Model)")
+plt.title("Medição x Estimação")
 plt.legend()
 plt.grid(which="both", linestyle="--", linewidth=0.5)
 plt.show()
 
 ```
+
+# Discussão
+
+Os valores obtidos por meio da medição ficaram muito discrepantes em comparação com a teoria. Isto pode ter sido causado pela quantidade de obstáculos que podem ter influenciado na comunicação entre o trasmissor e o receptor. Além disso, percebe-se que os valores médios da potência recebida não são exatamente proporcionais à distância. Isso não significa que o modelo estimado está incorreto, nem que as medições estão incorretas. Essa enorme discrepância ocorre, pois o modelo log-distância leva em consideração a propagação em ambiente livre como pontapé inicial, o que provou-se não ser suficiente para caracterizar o ambiente cheio de pequenos obstáculos como monitores e mesas. Dessa forma, o expoente de perda por propagação não pode, necessariamente, ser utilizado em outros ambientes. Para cada caso, essa variável deve ser analisada a fim de se obter o valor que minimize os erros.
+
 
 
 
