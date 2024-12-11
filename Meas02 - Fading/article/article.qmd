@@ -1,6 +1,6 @@
 ---
-title: Propagação em Larga Escala - Parte 2
-subtitle: Atividade 02
+title: Medições - Parte 2
+subtitle: Pequena Escala
 author:
   - name: Bruno Alexandre Fraga
     email: bruno.fraga@posgrad.ufsc.br
