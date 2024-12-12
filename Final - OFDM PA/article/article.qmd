@@ -87,13 +87,6 @@ No receptor, o sinal é amostrado, e o prefixo cíclico é removido, permitindo 
 
 No contexto de OFDM, cada subcanal opera a uma taxa de dados inferior à taxa total do sistema, e o sinal transmitido em cada subcanal é sujeito a uma atenuação variável, o que pode ser corrigido por técnicas de equalização de frequência. A vantagem dessa estrutura multicarrier é que ela permite a alocação eficiente de recursos de banda, reduzindo o impacto de interferências e melhorando a eficiência espectral, especialmente em canais sujeitos a desvanecimento rápido @goldsmith2020wireless.
 
-
-
-
-
-
-
-
 ## Amaplificadores de Potência
 
 Os amplificadores de potência (PAs) desempenham um papel fundamental na cadeia de transmissão de RF, sendo responsáveis por fornecer a potência necessária para transmitir sinais de alta qualidade a longas distâncias. No contexto de sistemas de comunicação modernos, como aqueles baseados em OFDM, o design de amplificadores de potência se torna ainda mais desafiador devido à necessidade de equilibrar a eficiência com a distorção não linear. Amplificadores de potência são os componentes mais exigentes em termos de consumo de energia em transceptores RF, e sua eficiência é crucial para a viabilidade energética dos sistemas @steer2019microwavev5.
@@ -103,6 +96,128 @@ Ao contrário de amplificadores de sinal pequeno, que podem ser projetados utili
 Ao longo deste trabalho será abordado alguns cuidados necessários para se realizar o design de amplificadores de potência, com foco nas limitações impostas por esses dispositivos nas arquiteturas de transmissor. Embora o tratamento completo desse tópico seja extenso, buscamos fornecer uma ideia básica sobre esse assunto, destacando a importância da caracterização da não linearidade dos amplificadores de potência e sua relação com as técnicas de modulação utilizadas em OFDM.
 
 # Considerações sobre PAs para OFDM
+
+Este artigo apresentado em @WLiu1999JLau realiza uma análise detalhada de um dos principais obstáculos na aplicação do OFDM em redes locais sem fio (WLANs): a necessidade de amplificadores de potência de rádio frequência (PA) que sejam ao mesmo tempo altamente lineares e eficientes. O trabalho destaca que a envoltória intensamente flutuante dos sinais OFDM dificulta a construção desses amplificadores, pois características como o alto PAPR (*Peak-to-Average Power Ratio*) tornam desafiador equilibrar a eficiência energética e a integridade do sinal transmitido.
+
+
+
+
+
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Configurações de fonte para os gráficos
+plt.rc('font', size=20)
+
+# Parâmetros iniciais
+N_ofdm = 4  # Número de portadoras
+constellation_points = [-1, 1]  # Pontos da constelação
+T_symb = 1.0  # Tempo de símbolo
+T_ofdm = T_symb * N_ofdm
+T_sample = 0.01
+N_zp = 29
+
+t = np.arange(0, T_ofdm, T_sample)
+delta_f = 1.0 / T_ofdm
+f = np.linspace(-1 / (2 * T_sample), 1 / (2 * T_sample), (N_zp + 1) * t.size)
+
+# Loop para calcular e plotar as portadoras individuais
+plt.figure(figsize=(18, 6))
+for _n in range(N_ofdm):
+    s = (1 / N_ofdm) * np.exp(1j * 2 * np.pi * _n * delta_f * t)
+    
+    plt.subplot(1, 2, 1)
+    plt.plot(t, np.real(s), label=f'Portadora {_n}', linewidth=2)
+    plt.grid(True)
+    plt.xlabel('Tempo (t)')
+    plt.title('Parte Real do Sinal')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(t, np.imag(s), label=f'Portadora {_n}', linewidth=2)
+    plt.grid(True)
+    plt.xlabel('Tempo (t)')
+    plt.title('Parte Imaginária do Sinal')
+
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Espectro das portadoras
+S = np.zeros((N_ofdm, f.size), dtype=complex)
+for _n in range(N_ofdm):
+    s = (1 / N_ofdm) * np.exp(1j * 2 * np.pi * _n * delta_f * t)
+    s_padded = np.append(s, np.zeros(N_zp * t.size))
+    S[_n, :] = np.fft.fftshift(np.fft.fft(s_padded))
+    S[_n, :] /= np.max(np.abs(S[_n, :]))
+
+S_PSD_sum = np.sum(np.abs(S)**2, axis=0)
+S_PSD_sum /= np.max(S_PSD_sum)
+
+plt.figure(figsize=(12, 6))
+for _n in range(N_ofdm):
+    plt.plot(f, np.abs(S[_n, :])**2, label=f'Portadora {_n}', linewidth=2)
+plt.plot(f, S_PSD_sum, label='Soma PSD', linewidth=2, linestyle='--')
+
+plt.grid(True)
+plt.xlabel('Frequência (f)')
+plt.ylabel('Potência do Espectro')
+plt.legend(loc='upper right')
+plt.xlim(-1 / T_symb / 2, 1 / T_symb * 1.5)
+plt.show()
+
+# Gerar símbolos OFDM
+N_ofdm = 16
+N_syms = 10
+data = np.random.randint(2, size=N_ofdm * N_syms)
+syms = [constellation_points[d] for d in data]
+
+s = np.zeros(N_syms * N_ofdm, dtype=complex)
+for ind_syms in range(N_syms):
+    s[ind_syms * N_ofdm:(ind_syms + 1) * N_ofdm] = \
+        np.fft.ifft(syms[ind_syms * N_ofdm:(ind_syms + 1) * N_ofdm])
+
+# Plot do sinal OFDM
+plt.figure(figsize=(12, 6))
+plt.plot(np.linspace(0, N_syms * T_ofdm, s.size), np.abs(s)**2, linewidth=2)
+plt.grid(True)
+plt.xlabel('Tempo (t)')
+plt.ylabel('Potência do Sinal')
+
+P_peak = np.max(np.abs(s)**2)
+P_av = np.average(np.abs(s)**2)
+plt.title(f'Potência Máxima = {P_peak:.2f}, Potência Média = {P_av:.2f}')
+plt.show()
+
+
+
+```
+
+
+
+
+
+
+
+
+
+Para abordar esse desafio, o artigo propõe e analisa o uso do método de eliminação e restauração de envoltória (*Envelope Elimination and Restoration - EER*) como uma alternativa para a amplificação de sinais OFDM. Essa técnica busca separar a envoltória e a fase do sinal, permitindo que a amplificação seja realizada de forma mais eficiente, ao mesmo tempo em que mantém a linearidade necessária. O artigo realiza uma comparação dos resultados obtidos com o método EER em relação ao desempenho de amplificadores lineares tradicionais operando com diferentes níveis de *power backoff* (redução de potência de saída para evitar distorções).
+
+Além disso, o artigo explora uma característica importante da envoltória dos sinais OFDM: sua concentração em níveis baixos. Essa propriedade pode levar a uma baixa potência média de saída quando amplificadores de potência de baixa tensão de alimentação são utilizados. Para mitigar esse problema, o trabalho apresenta simulações que mostram como é possível otimizar a relação sinal-ruído (SNR) e a taxa de erro de bit (*bit-error-rate - BER*) ajustando os níveis de *clipping* do sinal, sem a necessidade de aumentar a tensão de alimentação do amplificador.
+
+O artigo ainda faz uma análise dos compromissos necessários entre potência do sinal, distorção induzida pelo *clipping* e o impacto no BER. Essa abordagem fornece insights valiosos sobre como balancear eficiência energética e qualidade do sinal em aplicações práticas, o que é especialmente relevante em dispositivos móveis e sistemas de comunicação com restrições energéticas.
+
+Portanto, o estudo apresentado contribui significativamente para a compreensão e o avanço no design de amplificadores de potência adequados para sinais OFDM em WLANs. Ele demonstra que técnicas inovadoras, como o método EER, e o uso inteligente de ajustes nos parâmetros de sinal podem oferecer soluções viáveis para superar os desafios impostos pelo alto PAPR e pelas características de envoltória dos sinais OFDM.
+
+Além do método de eliminação e restauração de envoltória (EER), outras abordagens para lidar com o alto PAPR em sinais OFDM têm sido amplamente discutidas na literatura, sendo divididas em três categorias principais: técnicas de codificação, clipping e funções de correção de sinal. As técnicas de codificação utilizam códigos especiais para reduzir o PAPR ao estruturar os sinais OFDM de forma a minimizar os picos na envoltória. Exemplos incluem códigos de blocos e códigos que restringem a fase ou amplitude dos subcarriers, permitindo maior controle sobre a formação do sinal transmitido. O método de clipping, por sua vez, limita diretamente os picos da envoltória do sinal, cortando amplitudes que excedem um limiar pré-determinado. Embora seja uma abordagem simples de implementar, o clipping pode introduzir distorções, como recrescimento espectral e aumento no BER, exigindo o uso de filtros de reconstrução ou técnicas de equalização para mitigar esses efeitos. Já as funções de correção de sinal aplicam modificações matemáticas ao sinal OFDM, suavizando sua envoltória e reduzindo o PAPR. Métodos como pré-distorção ou mapeamento seletivo são exemplos comuns, equilibrando a complexidade computacional com a integridade do sinal. No contexto do trabalho analisado, as simulações realizadas mostram como ajustes no clipping podem ser otimizados para reduzir a distorção sem comprometer significativamente o BER, demonstrando a eficácia dessas técnicas no design de amplificadores eficientes para sinais OFDM em WLANs.
+
+
+
+
+
+
+
 
 # Estudo de caso
 
