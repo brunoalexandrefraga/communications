@@ -13,7 +13,7 @@ author:
           state: Santa Catarina
           postal-code: 88040-370
 abstract: |
-  Este trabalho apresenta duas técnicas de múltiplo acesso ao meio que são bem utilizadas: CSMA e Aloha. Esses protocolos de acesso ao meio desempenham papéis importantes em diferentes padrões de comunicação. CSMA é frequentemente utilizada em redes locais sem fio, enquanto Aloha tem aplicação em sistemas de comunicação via satélite e redes de sensores.
+  Este trabalho trata-se de uma introdução às técnicas para lidar com a exigência por alta eficiência e linearidade de amplificadores de potência para sinais OFDM, destacando o uso de arquiteturas digitais e outras abordagens. Foram analisados dois artigos com resultados experimentais que mostram que algumas abordagens podem atingir alta eficiência, mantendo a qualidade do sinal, contribuindo para o avanço de circuitos altamente eficientes em aplicações como redes 5G..
 keywords: 
   - Amplificadores de Potência
   - Circuitos de Radiofrequência
@@ -46,65 +46,13 @@ format:
 
 ## OFDM
 
-OFDM (Orthogonal Frequency Division Multiplexing) é uma técnica de modulação de múltiplos portadores que divide um fluxo de dados em múltiplos subfluxos, transmitidos simultaneamente por meio de canais de subportadoras ortogonais, um exemplo de tais subportadoras pode ser visualizado na [Fig. @fig-subportadoras]. A principal vantagem do OFDM é sua capacidade de lidar eficientemente com canais de comunicação com alta dispersão de tempo, minimizando a interferência entre símbolos e proporcionando uma modulação robusta contra distúrbios causados por desvanecimento do canal.
+OFDM (Orthogonal Frequency Division Multiplexing) é uma técnica de modulação de múltiplos portadoras que divide um fluxo de dados em múltiplos subfluxos, transmitidos simultaneamente por meio de canais de subportadoras ortogonais, um exemplo de tais subportadoras pode ser visualizado na [Fig. @fig-subportadoras] e na [Fig. @fig-subportadoras-spectrum] pode-se verificar o espectro de tais portadoras (códigos gerados baseado em @schmalen2024ofdm). A principal vantagem do OFDM é sua capacidade de lidar eficientemente com canais de comunicação, minimizando a interferência entre símbolos e proporcionando uma modulação robusta contra distúrbios causados por desvanecimento do canal (*fading*).
 
 ```{python}
 #| echo: false
 #| label: fig-subportadoras
 #| fig-cap: "Sinal OFDM com diversas subportadoras"
 
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-
-NoOfCarriers = 11
-interval = math.pi/50
-f = np.arange((-5*math.pi),(5*math.pi),interval)
-fnoiseMax = 3
-iMin = -(NoOfCarriers-1)//2
-iMax =  (NoOfCarriers-1)//2
-csum = np.zeros(len(f))
-fList = [];cList = []
-
-ax = plt.subplot(111)
-
-for i in range(iMin,iMax):
-    fnoise = fnoiseMax*(np.random.uniform(-1,1))
-    fshift = (i * (1//math.pi) * math.pi) + fnoise
-    c = np.sinc(f - fshift)
-    csum = csum + c[i]
-    fList = [fList,fshift]
-    cList = [cList,max(c)]
-    ax.plot(f, c)
-
-plt.grid(True)
-plt.show()
-```
-
-No funcionamento do sistema OFDM, o fluxo de dados de entrada é primeiramente modulado por um modulador QAM (Quadrature Amplitude Modulation), resultando em uma sequência de símbolos complexos. Esses símbolos são então passados por um conversor serial-paralelo, que os distribui nas N subportadoras do sistema. A conversão para o domínio do tempo é realizada através de uma Transformada Discreta de Fourier Inversa (IDFT), o que gera um sinal multicanal modulado. Para prevenir a interferência entre símbolos, é adicionada uma prefixo cíclico (cyclic prefix), que repete uma parte do símbolo OFDM para evitar a distorção causada pela resposta ao impulso do canal.
-
-No receptor, o sinal é amostrado, e o prefixo cíclico é removido, permitindo a recuperação dos símbolos transmitidos através da Transformada Rápida de Fourier (FFT). O uso do prefixo cíclico, ou até mesmo de um prefixo de zeros, permite eliminar a ISI e melhorar a robustez do sistema. A eficiência da implementação digital do OFDM também se destaca, uma vez que o processo de modulação e demodulação é simplificado pelo uso de FFTs e IFFTs, sendo altamente adequado para sistemas modernos de comunicação digital.
-
-No contexto de OFDM, cada subcanal opera a uma taxa de dados inferior à taxa total do sistema, e o sinal transmitido em cada subcanal é sujeito a uma atenuação variável, o que pode ser corrigido por técnicas de equalização de frequência. A vantagem dessa estrutura multicarrier é que ela permite a alocação eficiente de recursos de banda, reduzindo o impacto de interferências e melhorando a eficiência espectral, especialmente em canais sujeitos a desvanecimento rápido @goldsmith2020wireless.
-
-## Amaplificadores de Potência
-
-Os amplificadores de potência (PAs) desempenham um papel fundamental na cadeia de transmissão de RF, sendo responsáveis por fornecer a potência necessária para transmitir sinais de alta qualidade a longas distâncias. No contexto de sistemas de comunicação modernos, como aqueles baseados em OFDM, o design de amplificadores de potência se torna ainda mais desafiador devido à necessidade de equilibrar a eficiência com a distorção não linear. Amplificadores de potência são os componentes mais exigentes em termos de consumo de energia em transceptores RF, e sua eficiência é crucial para a viabilidade energética dos sistemas @steer2019microwavev5.
-
-Ao contrário de amplificadores de sinal pequeno, que podem ser projetados utilizando técnicas lineares, os amplificadores de potência requerem ferramentas de simulação não lineares e otimizações laboratoriais para atingir a eficiência desejada sem comprometer a qualidade do sinal transmitido. O design desses amplificadores envolve um trade-off entre a distorção e a eficiência, sendo necessário controlar fenômenos como a compressão de ganho, que podem degradar a performance das modulações @razavi2011rf.
-
-Ao longo deste trabalho será abordado alguns cuidados necessários para se realizar o design de amplificadores de potência, com foco nas limitações impostas por esses dispositivos nas arquiteturas de transmissor. Embora o tratamento completo desse tópico seja extenso, buscamos fornecer uma ideia básica sobre esse assunto, destacando a importância da caracterização da não linearidade dos amplificadores de potência e sua relação com as técnicas de modulação utilizadas em OFDM.
-
-# Considerações sobre PAs para OFDM
-
-Este artigo apresentado em @WLiu1999JLau realiza uma análise detalhada de um dos principais obstáculos na aplicação do OFDM em redes locais sem fio (WLANs): a necessidade de amplificadores de potência de rádio frequência (PA) que sejam ao mesmo tempo altamente lineares e eficientes. O trabalho destaca que a envoltória intensamente flutuante dos sinais OFDM dificulta a construção desses amplificadores, pois características como o alto PAPR (*Peak-to-Average Power Ratio*) tornam desafiador equilibrar a eficiência energética e a integridade do sinal transmitido.
-
-
-
-
-
-
-```{python}
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -113,15 +61,12 @@ plt.rc('font', size=20)
 
 # Parâmetros iniciais
 N_ofdm = 4  # Número de portadoras
-constellation_points = [-1, 1]  # Pontos da constelação
 T_symb = 1.0  # Tempo de símbolo
 T_ofdm = T_symb * N_ofdm
 T_sample = 0.01
-N_zp = 29
+delta_f = 1.0 / T_ofdm
 
 t = np.arange(0, T_ofdm, T_sample)
-delta_f = 1.0 / T_ofdm
-f = np.linspace(-1 / (2 * T_sample), 1 / (2 * T_sample), (N_zp + 1) * t.size)
 
 # Loop para calcular e plotar as portadoras individuais
 plt.figure(figsize=(18, 6))
@@ -143,8 +88,21 @@ for _n in range(N_ofdm):
 plt.legend()
 plt.tight_layout()
 plt.show()
+```
+
+
+```{python}
+#| echo: false
+#| label: fig-subportadoras-spectrum
+#| fig-cap: "Espectro OFDM com diversas subportadoras"
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Espectro das portadoras
+N_zp = 29
+f = np.linspace(-1 / (2 * T_sample), 1 / (2 * T_sample), (N_zp + 1) * t.size)
+
 S = np.zeros((N_ofdm, f.size), dtype=complex)
 for _n in range(N_ofdm):
     s = (1 / N_ofdm) * np.exp(1j * 2 * np.pi * _n * delta_f * t)
@@ -166,10 +124,38 @@ plt.ylabel('Potência do Espectro')
 plt.legend(loc='upper right')
 plt.xlim(-1 / T_symb / 2, 1 / T_symb * 1.5)
 plt.show()
+```
+
+No funcionamento do sistema OFDM, o fluxo de dados de entrada é primeiramente modulado por um modulador QAM (*quadrature amplitude modulation*), resultando em uma sequência de símbolos complexos. Esses símbolos são então passados por um conversor serial-paralelo, que os distribui nas N subportadoras do sistema. Para prevenir a interferência entre símbolos, é adicionada uma prefixo cíclico (*cyclic prefix*), que repete uma parte do símbolo OFDM para evitar a distorção causada pela resposta ao impulso do canal.
+
+No receptor, o sinal é amostrado, e o prefixo cíclico é removido, permitindo a recuperação dos símbolos transmitidos. O uso do prefixo cíclico, ou até mesmo de um prefixo de zeros, permite eliminar a interferência entre símbolos (ISI) e melhorar a robustez do sistema. A eficiência da implementação digital do OFDM também se destaca, uma vez que o processo de modulação e demodulação é simplificado pelo uso de FFTs (algorítmo de implementação da transformada de Fourier), sendo altamente adequado para sistemas modernos de comunicação digital.
+
+No contexto de OFDM, cada subcanal opera a uma taxa de dados inferior à taxa total do sistema, evidentemente, e o sinal transmitido em cada subcanal é sujeito a uma atenuação variável (no caso de um canal seletivo em freqência, por exemplo), o que pode ser corrigido por técnicas de equalização de frequência ou até mesmo codificação. A vantagem dessa estrutura de multiportadoras é que ela permite a alocação eficiente de recursos de banda, reduzindo o impacto de interferências e melhorando a eficiência espectral, especialmente em canais sujeitos a desvanecimento rápido @goldsmith2020wireless.
+
+## Amaplificadores de Potência
+
+Os amplificadores de potência (PAs), por sua vez, desempenham um papel fundamental na cadeia de transmissão de RF, sendo responsáveis por fornecer a potência necessária para transmitir sinais de alta qualidade a longas distâncias. No contexto de sistemas de comunicação modernos, como aqueles baseados modulações digitais, como o OFDM aqui discuitido, por exemplo, o design de amplificadores de potência se torna ainda mais desafiador devido à necessidade de equilibrar a eficiência com a inclusão distorção não linear no sinal. Além disso, os amplificadores de potência são os componentes mais exigentes em termos de consumo de energia em transceptores RF, e sua eficiência é crucial para a viabilidade dos sistemas @steer2019microwavev5.
+
+Ao contrário de amplificadores de pequenos sinais, que podem ser projetados utilizando técnicas lineares, os amplificadores de potência requerem ferramentas de simulação não lineares e otimizações laboratoriais para atingir a eficiência desejada sem comprometer a qualidade do sinal transmitido. O design desses amplificadores envolve uma compensação entre distorção e eficiência, sendo necessário controlar fenômenos como a compressão de ganho, distorções harmônicas e produtos de intermodulação, que podem degradar a performance das modulações significativamente @razavi2011rf.
+
+Dessa forma, ao longo deste trabalho será introduzida a ideia de alguns cuidados necessários para se realizar o design de amplificadores de potência, com foco nas limitações impostas por esses dispositivos nas arquiteturas de transmissor. Embora o tratamento completo desse tópico seja extremamente extenso, buscou-se fornecer uma ideia básica sobre esse assunto, destacando a importância da caracterização da não linearidade dos amplificadores de potência e sua relação com as técnicas de modulação utilizadas em OFDM.
+
+# Considerações sobre PAs para OFDM
+
+Falando sobre amplificadores para OFDM, o artigo @WLiu1999JLau realiza uma análise detalhada de um dos principais obstáculos na aplicação do OFDM em redes locais sem fio (WLANs): a necessidade de PAs que sejam ao mesmo tempo altamente lineares e eficientes. O trabalho destaca que a intensa variação da envoltória (ou envolope) dos sinais OFDM dificulta a construção desses amplificadores, pois características como o alto PAPR (*Peak-to-Average Power Ratio*) tornam desafiador equilibrar a eficiência e a integridade do sinal transmitido. A grande diferença entre a potência de pico e a potência média do sinal pode ser visualizada na [Fig. @fig-modulation-visualization].
+
+```{python}
+#| echo: false
+#| label: fig-modulation-visualization
+#| fig-cap: "Sinal OFDM modulado"
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Gerar símbolos OFDM
 N_ofdm = 16
 N_syms = 10
+constellation_points = [-1, 1]  # Pontos da constelação
 data = np.random.randint(2, size=N_ofdm * N_syms)
 syms = [constellation_points[d] for d in data]
 
@@ -189,38 +175,66 @@ P_peak = np.max(np.abs(s)**2)
 P_av = np.average(np.abs(s)**2)
 plt.title(f'Potência Máxima = {P_peak:.2f}, Potência Média = {P_av:.2f}')
 plt.show()
-
-
-
 ```
 
+Para abordar esse desafio, o artigo propõe e analisa o uso do método de eliminação e restauração de envoltória (EER) como uma alternativa para a amplificação de sinais OFDM. Essa técnica busca separar a envoltória e a fase do sinal, permitindo que a amplificação seja realizada de forma mais eficiente, ao mesmo tempo em que mantém a linearidade necessária. O artigo realiza uma comparação dos resultados obtidos com o método EER em relação ao desempenho de amplificadores lineares tradicionais operando com diferentes níveis de redução de potência (OBO) de saída para evitar distorções.
 
+Além disso, o artigo explora uma característica importante da envoltória dos sinais OFDM: sua concentração em níveis baixos. Essa propriedade pode levar a uma baixa potência média de saída quando esses PAs são alimentados por fontes de tensão que não são suficiente para lidar com os picos dos sinais. Para mitigar esse problema, o trabalho apresenta simulações que mostram como é possível otimizar a relação sinal-ruído (SNR) e a taxa de erro de bit (BER) ajustando os níveis de *clipping* (corte) do sinal, sem a necessidade de aumentar a tensão de alimentação do amplificador. O artigo ainda faz uma análise dos compromissos necessários entre potência do sinal, distorção induzida pelo corte do sinal e o impacto no BER.
 
+Além do método de eliminação e restauração de envoltória (EER), outras abordagens para lidar com o alto PAPR em sinais OFDM têm sido amplamente discutidas na literatura, sendo divididas em três categorias principais: técnicas de codificação, corte (devidamente implementado) e correção de sinais. As técnicas de codificação utilizam códigos para reduzir o PAPR ao estruturar os sinais OFDM de forma a minimizar os picos na envoltória. Exemplos incluem códigos que restringem a fase ou amplitude das subportadoras, permitindo maior controle sobre a formação do sinal transmitido. O método de corte, por sua vez, limita diretamente os picos da envoltória do sinal, cortando amplitudes que excedem um limiar pré-determinado. Embora seja uma abordagem simples de implementar, o corte pode introduzir distorções significativas e impactar negativamente na eficácia do sistema, como aumento da banda do sinal e aumento no BER, exigindo o uso de filtros de reconstrução ou técnicas de equalização para mitigar esses efeitos. Já as funções de correção de sinal aplicam modificações matemáticas ao sinal OFDM, suavizando sua envoltória e reduzindo o PAPR. Métodos como pré-distorção ou mapeamento seletivo são exemplos comuns, equilibrando a complexidade computacional com a integridade do sinal. No contexto do trabalho analisado, as simulações realizadas mostram como ajustes no corte podem ser otimizados para reduzir a distorção sem comprometer significativamente o BER, demonstrando a eficácia dessas técnicas no projeto de amplificadores eficientes para sinais OFDM especialmente em WLANs como o trabalho se propõe.
 
+De forma um pouco mais detalhada sobre os os testes realizados no trabalho analisado, foi utilizado um sinal OFDM com modulação 64-QAM (6 bits por símbolo) em uma largura de banda de 5 MHz. Para evitar transmissões espúrias e o aumento de bandas laterais (fora da faixa de frequência determinada), foi necessário o uso de um amplificador de potência RF altamente linear. Contudo, constatou-se que um amplificador classe A (o mais linear possível), operando com uma certa redução na potência de operação do amplificador, para evitar o corte do sinal, o circuito ainda assim apresentou uma eficiência média de apenas 5%, sendo que o amplificador classe A tem uma eficiência máxima de operaçao de 50% @razavi2011rf. Mesmo com uma redução na potência de saída de 6 dB, a eficiência foi limitada a 13%. A baixa eficiência é, de fato, um grande problema, especialmente para dispositivos de baixa potência. Segundo os autores, esta é uma das razão pela qual o OFDM não foi adotado como padrão para o *High Performance Radio LAN* (HIPERLAN) europeu.
 
+Por conta do problema anteriormente apresentado, considera-se o uso de um amplificador de potência EER. Resumidamente, o EER funciona separando o sinal de entrada em duas partes: o sinal de fase e o sinal de envoltória. O sinal de fase, que contém informações sobre a fase do sinal, é amplificado por um amplificador linear, como o amplificador classe A, que garante a preservação da integridade do sinal sem distorção. Por outro lado, o sinal de envoltória, que representa as variações de amplitude do sinal, é amplificado por um amplificador de alta eficiência, como os amplificadores classe E, cuja eficiência aproxima-se de 100%, mas podem introduzir distorções, a topologia de um amplificador classe E pode ser visualizado na [Fig. @fig-Class-E]. Após a amplificação separada, os dois sinais são combinados novamente, restaurando o sinal de entrada original com a amplitude e a fase corretas. Essa abordagem permite melhorar a eficiência do sistema. Ao final dos experimentos utilizando a técnica EER, observou-se que a técnica pode alcançar uma eficiência de potência superior a 64%, resultado muito melhor do que o amplificador de potência classe A.
 
+![Amplificador Classe E](../images/Class-E.png){width=300, #fig-Class-E}
 
+Outro aspecto relevante sobre amplificadores de potência para OFDM é que a linearidade de um sistema EER depende não apenas da linearidade da fonte de alimentação do amplificador, mas também de outros parâmetros do sistema. A largura de banda do filtro passa-baixa na saída do amplificador, bem como o descompasso de tempo entre os sinais de envoltória e fase, e o corte da envoltória são fatores que influenciam diretamente a BER e devem ser levados em consideração.
 
+Dessa forma, os autores também realizam simulações para avaliar o desempenho do sistema OFDM utilizando a técnica EER e consideram diferentes parâmetros como a largura de banda do filtro passa-baixa na saída da fonte de alimentação. A performance do sistema é avaliada em termos da BER sob diferentes condições de SNR. Os resultados mostram que, ao aumentar a largura de banda do filtro, a degradação na performance do sistema se torna menor, especialmente quando a largura de banda ultrapassa 12 MHz [Fig. @fig-BER-Results].
 
-Para abordar esse desafio, o artigo propõe e analisa o uso do método de eliminação e restauração de envoltória (*Envelope Elimination and Restoration - EER*) como uma alternativa para a amplificação de sinais OFDM. Essa técnica busca separar a envoltória e a fase do sinal, permitindo que a amplificação seja realizada de forma mais eficiente, ao mesmo tempo em que mantém a linearidade necessária. O artigo realiza uma comparação dos resultados obtidos com o método EER em relação ao desempenho de amplificadores lineares tradicionais operando com diferentes níveis de *power backoff* (redução de potência de saída para evitar distorções).
+![Efeito de filtro ao longo a largura de banda](../images/BER-results.png){width=300, #fig-BER-Results}
 
-Além disso, o artigo explora uma característica importante da envoltória dos sinais OFDM: sua concentração em níveis baixos. Essa propriedade pode levar a uma baixa potência média de saída quando amplificadores de potência de baixa tensão de alimentação são utilizados. Para mitigar esse problema, o trabalho apresenta simulações que mostram como é possível otimizar a relação sinal-ruído (SNR) e a taxa de erro de bit (*bit-error-rate - BER*) ajustando os níveis de *clipping* do sinal, sem a necessidade de aumentar a tensão de alimentação do amplificador.
+Outro aspecto que pode impactar significativamente a BER do sistema é o descompasso temporal entre os sinais de envoltória e fase. A pesquisa revelou que a precisão temporal entre os sinais de envoltória e fase deve ser mantida dentro de limites rigorosos para assegurar um desempenho ideal. Foi observado que um descompasso de 5 ns resulta em uma degradação de desempenho equivalente àquela observada em uma configuração de amplificador linear com uma redução de 8 dB na relação de potência de saída (OBO). Além disso, um descompasso de 20 ns, equivalente a 0,1 vezes a largura de banda do sinal RF, prejudica severamente o funcionamento do sistema OFDM de 5 MHz, ocasionando uma queda significativa na qualidade do sinal transmitido. Os resultados podem ser visualizados na [Fig. @fig-delay-mismatch].
 
-O artigo ainda faz uma análise dos compromissos necessários entre potência do sinal, distorção induzida pelo *clipping* e o impacto no BER. Essa abordagem fornece insights valiosos sobre como balancear eficiência energética e qualidade do sinal em aplicações práticas, o que é especialmente relevante em dispositivos móveis e sistemas de comunicação com restrições energéticas.
+![A degradação de desempenho causada pelo descompasso temporal entre os sinais de envoltória e fase](../images/delay-mismatch.png){width=300, #fig-delay-mismatch}
 
-Portanto, o estudo apresentado contribui significativamente para a compreensão e o avanço no design de amplificadores de potência adequados para sinais OFDM em WLANs. Ele demonstra que técnicas inovadoras, como o método EER, e o uso inteligente de ajustes nos parâmetros de sinal podem oferecer soluções viáveis para superar os desafios impostos pelo alto PAPR e pelas características de envoltória dos sinais OFDM.
+Para mitigar os efeitos adversos desse descompasso, foi proposta a utilização de feedback da envoltória do sinal, o qual pode compensar o atraso introduzido pelo filtro passa-baixa no sinal de envoltória. A comparação entre um amplificador EER com feedback e um sem feedback demonstra a eficácia dessa abordagem na redução do impacto do descompasso temporal.
 
-Além do método de eliminação e restauração de envoltória (EER), outras abordagens para lidar com o alto PAPR em sinais OFDM têm sido amplamente discutidas na literatura, sendo divididas em três categorias principais: técnicas de codificação, clipping e funções de correção de sinal. As técnicas de codificação utilizam códigos especiais para reduzir o PAPR ao estruturar os sinais OFDM de forma a minimizar os picos na envoltória. Exemplos incluem códigos de blocos e códigos que restringem a fase ou amplitude dos subcarriers, permitindo maior controle sobre a formação do sinal transmitido. O método de clipping, por sua vez, limita diretamente os picos da envoltória do sinal, cortando amplitudes que excedem um limiar pré-determinado. Embora seja uma abordagem simples de implementar, o clipping pode introduzir distorções, como recrescimento espectral e aumento no BER, exigindo o uso de filtros de reconstrução ou técnicas de equalização para mitigar esses efeitos. Já as funções de correção de sinal aplicam modificações matemáticas ao sinal OFDM, suavizando sua envoltória e reduzindo o PAPR. Métodos como pré-distorção ou mapeamento seletivo são exemplos comuns, equilibrando a complexidade computacional com a integridade do sinal. No contexto do trabalho analisado, as simulações realizadas mostram como ajustes no clipping podem ser otimizados para reduzir a distorção sem comprometer significativamente o BER, demonstrando a eficácia dessas técnicas no design de amplificadores eficientes para sinais OFDM em WLANs.
+Os resultados obtidos destacam a importância de um controle rigoroso sobre o tempo entre os dois sinais, sugerindo que, para um sistema OFDM eficiente, o descompasso deve ser inferior a 0,025 vezes a largura de banda do amplificador sinal, o que equivale a aproximadamente 5 ns para um sinal OFDM de 5 MHz.
 
+E, por fim, analisa-se o corte da envoltória da modulação, cujos resultados podem ser visualizados na [Fig. @fig-clipping-envelope]. A pesquisa mostrou que a maior parte do sinal permanece em níveis baixos. Com uma tensão de alimentação reduzida, o sinal mantém a potência média baixa na saída do amplificador, desde que não haja corte. O trabalho apresenta que, para aumentar a potência média de saída, o corte se torna necessário devido à saturação da tensão do fornecimento de energia, especialmente quando é preciso um nível maior de sinal.
 
+![Efeito de corte de envoltória](../images/clipping-envelope.png){width=300, #fig-clipping-envelope}
 
+Simulações realizadas no estudo investigaram a troca entre a potência de saída (ou SNR com nível de ruído fixo) e a distorção devido ao corte (utilizando um limitador suave com nível fixo de corte), variando o sinal de envoltória. O estudo também detalhou a compensação do atraso temporal causado por um filtro passa-baixa de segunda ordem de 12 MHz aplicado ao sinal de envoltória.
 
-
-
-
+O trabalho concluiu que, em condições de alto nível de ruído (baixa SNR), a razão de corte ótima é pequena (com maior porcentagem de corte), enquanto que em cenários de baixo ruído (alta SNR), a razão de corte ótima é maior (com menor porcentagem de corte). Além disso, a potência média de saída do sinal aumentou em 2 dB com uma razão de corte de 4,8, em comparação com a potência de sinal para uma razão de corte de 6,2.
 
 # Estudo de caso
 
+Como estudo de caso para exemplificar o que foi discutido até então, analisa-se o trabalho apresentado em @Jiteng2023Ma. Esse artigo discute um PA digital de eficiência elevada, projetado especificamente para a amplificação de sinais de modulação OFDM.
+
+Diferentemente do que foi proposto no trabalho anterior, este PA utiliza uma arquitetura de controle digital. Isso simplifica o layout do transmissor e melhora a eficiência, permitindo que os transistores utilizados no amplificador operem em um modo de comutação mais eficiente. Essa arquitetura é composta por três transistores de potência, que são acionados em diferentes estados de potência (6 W, 15 W e 25 W). Esses transistores são combinados através de um "combinador de potência" que realiza a modulação de carga, permitindo a operação em até oito estados de potência de saída. Essa abordagem melhora a eficiência, minimiza a distorção do sinal e pode ser visualizado, simplificadamente na [Fig. @DPA-implified-schematic].
+
+![Esquema simplificado do amplificador](../images/DPA-implified-schematic.png){width=300, #DPA-implified-schematic}
+
+Os resultados experimentais mostraram que o protótipo do PA proposto atinge uma eficiência de potência adicionada máxima (PAE) de 64,3% e mantém uma eficiência de dreno superior a 47% em uma faixa de potência de saída de 36,6 a 45,2 dBm. Esses resultados são bem interessantes se comparados com amplificadores tradicionais (como foi comentado anteriormente amplificadores classe A, os mais lineares, possuem uma eficiência máxima a 50%, muito próximo ao que foi obtido pelo experimento). Além disso, o sistema demonstrou ser capaz de operar de maneira correta com sinais OFDM de diferentes larguras de banda, mantendo a eficiência e a qualidade do sinal. A medição da potência de saída é apresentada na [Fig. @fig-DPA-meas] e a comparação entre a eficiência simulada e medida também pode ser visualizada na [Fig. @fig-drain-eff].
+
+![Medições de potência de saída do PA](../images/DPA-meas.png){width=300, #fig-DPA-meas}
+
+![Eficiência de dreno do PA](../images/drain-eff.png){width=300, #fig-drain-eff}
+
+Em relação a eficácia nos símbolos transmitidos pelo PA proposto, a [Fig. @fig-QAM-constellations] apresenta as constelações para diferentes frequências de operação, para uma modulação 16-QAM.
+
+![Constelações OFDM](../images/QAM-constellations.png){width=300, #fig-QAM-constellations}
+
+Em suma, o PA proposto representa um avanço importante na amplificação de sinais OFDM, abordando desafios críticos relacionados à eficiência e linearidade. A combinação de técnicas de controle digital com transistores GaN de alta eficiência resulta em um amplificador que não só melhora a eficiência em comparação com designs anteriores, mas também mantém a qualidade do sinal. Este trabalho contribui para a literatura existente sobre amplificadores de potência e fornece um caminho promissor para futuras pesquisas e desenvolvimentos em amplificadores digitais para aplicações em comunicação sem fio. A pesquisa oferece soluções práticas e inovadoras para os desafios enfrentados na amplificação de sinais de alta PAPR, com implicações significativas para o futuro da tecnologia de comunicação, especialmente com a crescente demanda por eficiência em redes 5G e além [Fig. @fig-OFDM-comparison].
+
+![Comparação das amplitudes](../images/OFDM-comparison.png){width=300, #fig-OFDM-comparison}
+
 # Conclusão
+
+A análise apresentada ao longo deste texto destaca os avanços no design e na implementação de amplificadores de potência para sinais OFDM, com ênfase na eficiência e linearidade. A evolução das arquiteturas, desde amplificadores tradicionais até soluções digitais mais inovadoras, evidencia como a combinação de técnicas avançadas de controle digital pode mitigar os desafios relacionados ao PAPR elevado em sistemas com esse tipo de modulação. Os estudos discutidos mostram que, ao explorar novos métodos de modulação de carga e estados de potência, é possível melhorar a eficiência, mantendo alta qualidade no sinal transmitido, essencial para atender às demandas de redes 5G e além.
 
 # References {-}
