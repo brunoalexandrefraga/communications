@@ -1,0 +1,151 @@
+---
+title: Modulação AM
+subtitle: Laboratório 01
+author:
+  - name: Bruno Alexandre Fraga
+    email: bruno.fraga@posgrad.ufsc.br
+    affiliations: 
+        - id: some-tech
+          name: Universidade Federal de Santa Catarina
+          department: Departamento de Engenharia Elétrica e Eletrônica
+          address: R. Delfino Conti
+          city: Florianópolis
+          state: Santa Catarina
+          postal-code: 88040-370
+abstract: |
+  Este trabalho trata-se de uma introdução às técnicas para lidar com a exigência por alta eficiência e linearidade de amplificadores de potência para sinais OFDM, destacando o uso de arquiteturas digitais e outras abordagens. Foram analisados dois artigos com resultados experimentais que mostram que algumas abordagens podem atingir alta eficiência, mantendo a qualidade do sinal, contribuindo para o avanço de circuitos altamente eficientes em aplicações como redes 5G.
+keywords: 
+  - Amplificadores de Potência
+  - Circuitos de Radiofrequência
+  - OFDM
+date: last-modified
+bibliography: bibliography.bib
+format:
+  elsevier-pdf:
+    include-in-header:
+      - text: |
+          \usepackage{steinmetz}
+          \usepackage[a4paper, margin=1in]{geometry}
+          \usepackage{graphicx} % Required for inserting images
+          \usepackage{circuitikz}
+          \usepackage{amsmath}
+          \usepackage{amssymb}
+          \usepackage{amsthm}
+          \usepackage{comment}
+
+          \newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+    keep-tex: true
+    journal:
+      name: Comunicações sem Fio
+      formatting: preprint
+      # model: 3p # Don't set a model with preprint
+      cite-style: number
+---
+
+```{python}
+#| echo: false
+#| label: fig-subportadoras
+#| fig-cap: "Sinal OFDM com diversas subportadoras"
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Criação do sinal de informação
+def create_signal(frequency=1, duration=1, sampling_rate=100):
+    t = np.linspace(0, duration, int(sampling_rate * duration))
+    signal = np.sin(2 * np.pi * frequency * t)
+    return t, signal
+
+# Criação da portadora
+def create_carrier(carrier_frequency=10, duration=1, sampling_rate=100):
+    t = np.linspace(0, duration, int(sampling_rate * duration))
+    carrier = np.cos(2 * np.pi * carrier_frequency * t)
+    return t, carrier
+
+# Função de modulação (mixagem)
+def modulate(signal, carrier):
+    return signal * carrier
+
+# Função de demodulação (receptor)
+def demodulate(modulated_signal, carrier):
+    return modulated_signal / carrier
+
+# Parâmetros
+signal_frequency = 2            # Frequência do sinal (Hz)
+carrier_frequency = 20          # Frequência da portadora (Hz)
+duration = 1                    # Duração do sinal (segundos)
+sampling_rate = 1000            # Taxa de amostragem (Hz)
+
+# Gerar sinal de informação e portadora
+t, signal = create_signal(signal_frequency, duration, sampling_rate)
+_, carrier = create_carrier(carrier_frequency, duration, sampling_rate)
+
+# Modulação
+modulated_signal = modulate(signal, carrier)
+
+# Receptor (demodulação)
+demodulated_signal = demodulate(modulated_signal, carrier)
+
+# Plots
+plt.figure(figsize=(12, 8))
+
+# Sinal original
+plt.subplot(4, 1, 1)
+plt.plot(t, signal, label="Sinal de Informação")
+plt.title("Sinal de Informação")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.legend()
+
+# Portadora
+plt.subplot(4, 1, 2)
+plt.plot(t, carrier, label="Portadora", color='orange')
+plt.title("Portadora")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.legend()
+
+# Sinal modulado
+plt.subplot(4, 1, 3)
+plt.plot(t, modulated_signal, label="Sinal Modulado", color='green')
+plt.title("Sinal Modulado")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.legend()
+
+# Sinal demodulado
+plt.subplot(4, 1, 4)
+plt.plot(t, demodulated_signal, label="Sinal Demodulado", color='purple')
+plt.title("Sinal Demodulado")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+
+# Função para plotar o espectro de frequência
+def plot_frequency_spectrum(signal, sampling_rate, title="Espectro de Frequência"):
+    n = len(signal)
+    freq = np.fft.fftfreq(n, d=1/sampling_rate)
+    spectrum = np.fft.fft(signal)
+    plt.figure(figsize=(8, 4))
+    plt.plot(np.fft.fftshift(freq), np.fft.fftshift(np.abs(spectrum)), label="Magnitude do Espectro")
+    plt.title(title)
+    plt.xlabel("Frequência (Hz)")
+    plt.ylabel("Amplitude")
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+# Plot do espectro de frequência do sinal modulado
+plot_frequency_spectrum(modulated_signal, sampling_rate, title="Espectro de Frequência do Sinal Modulado")
+
+```
+
+# References {-}
